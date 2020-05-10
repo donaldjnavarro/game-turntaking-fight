@@ -31,27 +31,24 @@ class prompt(cmd.Cmd):
         # return cmd.Cmd.emptyline(self) # this will repeat the last entered command
         return False # Take no action
         
-    def precmd(self, line):
-        global turn,myTurn
-        untilMyTurn = myTurn - turn
-        print("[debug] turn:",turn)
-
-        # 1. Inform the user if they are ready to act
-        # 2. Inform the user how long until they will be ready to act
-        if (myTurn <= turn):
-            print("You are ready to act.")
-        else:
-            print("Preparing to act:",untilMyTurn*"...")
-        return cmd.Cmd.precmd(self, line)
-
     def postcmd(self, stop, line):
         global turn, enemyTurn
+        untilMyTurn = myTurn - turn
         turn = turn+1
+        # print("[debug] turn:",turn)
 
         # Enemy acts if ready
         if (enemyTurn <= turn):
             print("Enemy acts!")
             enemyTurn = turn+10
+
+        # # 1. Inform the user if they are ready to act
+        # # 2. Inform the user how long until they will be ready to act
+        if (myTurn <= turn):
+            print("You are ready to act.")
+        else:
+            print("Preparing to act:",untilMyTurn*"...")
+
         return cmd.Cmd.postcmd(self, stop, line)
 
     def do_act(self, arg):
