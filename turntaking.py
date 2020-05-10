@@ -34,21 +34,19 @@ class prompt(cmd.Cmd):
     def postcmd(self, stop, line):
         global turn, enemyTurn
         untilMyTurn = myTurn - turn
-        turn = turn+1
         # print("[debug] turn:",turn)
 
         # Enemy acts if ready
         if (enemyTurn <= turn):
             print("Enemy acts!")
             enemyTurn = turn+10
-
-        # # 1. Inform the user if they are ready to act
-        # # 2. Inform the user how long until they will be ready to act
+        # 1. Inform the user if they are ready to act
+        # 2. Inform the user how long until they will be ready to act
         if (myTurn <= turn):
             print("You are ready to act.")
         else:
             print("Preparing to act:",untilMyTurn*"...")
-
+        turn = turn+1
         return cmd.Cmd.postcmd(self, stop, line)
 
     def do_act(self, arg):
