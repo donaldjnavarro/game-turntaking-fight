@@ -34,7 +34,6 @@ class prompt(cmd.Cmd):
     def postcmd(self, stop, line):
         global turn, enemyTurn
         untilMyTurn = myTurn - turn
-        # print("[debug] turn:",turn)
 
         # Enemy acts if ready
         if (enemyTurn <= turn):
@@ -45,17 +44,38 @@ class prompt(cmd.Cmd):
         if (myTurn <= turn):
             print("You are ready to act.")
         else:
-            print("Preparing to act:",untilMyTurn*"...")
+            print("Preparing to act:",untilMyTurn*".")
         turn = turn+1
         return cmd.Cmd.postcmd(self, stop, line)
 
     def do_act(self, arg):
-        global myTurn
-        if (myTurn <= turn):
+        if try_act():
             print("You act!")
-            myTurn = turn+10
-        else:
-            print("You are not ready to act yet...")
+            wait(10)
+    def do_jab(self, arg):
+        if try_act():
+            print("You throw a light jab!")
+            wait(5)
+    def do_punch(self, arg):
+        if try_act():
+            print("You throw a punch!")
+            wait(10)
+    def do_uppercut(self, arg):
+        if try_act():
+            print("You throw a fierce uppercut!")
+            wait(15)
+
+def try_act():
+    global myTurn
+    if (myTurn <= turn):
+        return True
+    else:
+        print("You are not ready to act yet...")
+        return False
+
+def wait(time):
+    global myTurn, turn
+    myTurn = turn+time
 
 if __name__ == '__main__':
     prompt().cmdloop()
