@@ -19,19 +19,16 @@ class prompt(cmd.Cmd):
 
     def do_quit(self, arg):
         """Close the program. Nothing is saved."""
-        print('QUIT SCREEN')
         quit()
-        # Removing this: beware this in prompt, it only ends the current prompt and enables the user to travel backwards into previous prompts
-        # return True # End the current prompt loop
     
     def emptyline(self):
-        # When the user presses enter without typing anything
         # return cmd.Cmd.emptyline(self) # this will repeat the last entered command
-        return False # Take no action
+        return False # Do nothing and let time proceed if the user inputs enter without typing
 
     def postcmd(self, stop, line):
         global turn, enemyTurn, stance
         untilMyTurn = myTurn - turn
+        #----------------------
         # Enemy acts if ready
         if (enemyTurn < turn):
             if stance == "blocking":
@@ -102,3 +99,4 @@ if __name__ == '__main__':
 # TODO: Vary enemy actions
 # TODO: Vary the amount of damage done
 # TODO: Vary success rate of attacks
+# TODO: Add death handling / win-lose scenarios
