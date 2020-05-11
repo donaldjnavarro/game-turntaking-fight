@@ -32,21 +32,21 @@ class prompt(cmd.Cmd):
     def postcmd(self, stop, line):
         global turn, enemyTurn, stance
         untilMyTurn = myTurn - turn
-
         # Enemy acts if ready
-        if (enemyTurn <= turn):
+        if (enemyTurn < turn):
             if stance == "blocking":
                 print("You block the enemy's attack!!!")
             else:
                 print("The enemy punches you!")
                 attack("user", 10)
             enemyTurn = turn+10
+        #-----------------------
         # End of Round Routine
         turn = turn+1
         # 1. Inform the user if they are ready to act
         # 2. Inform the user how long until they will be ready to act
-        if (myTurn <= turn):
-            print("You are ready to act.")
+        if (myTurn < turn):
+            print("...you are ready to act.")
             stance = False # Clear the stance when its your turn again. This is shortterm handling until we create a duration for stances 
         else:
             print("Preparing to act:",untilMyTurn*".")
@@ -77,7 +77,7 @@ class prompt(cmd.Cmd):
 
 def try_act():
     global myTurn
-    if (myTurn <= turn):
+    if (myTurn < turn):
         return True
     else:
         print("You are not ready to act yet...")
