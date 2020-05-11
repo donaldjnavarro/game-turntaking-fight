@@ -100,3 +100,4 @@ if __name__ == '__main__':
 # TODO: Vary the amount of damage done
 # TODO: Vary success rate of attacks
 # TODO: Add death handling / win-lose scenarios
+# TODO: Add personality templates for enemies: Different templates have different fighting preferences, and emotes for the user to try to interpret to predict their fighting style
