@@ -53,7 +53,6 @@ var action = {
 - TODO: Vary enemy actions
 - TODO: Vary the amount of damage done
 - TODO: Vary success rate of attacks
-- TODO: Add death handling / win-lose scenarios
 - TODO: Add personality templates for enemies: Different templates have different fighting preferences, and emotes for the user to try to interpret to predict their fighting style
 - TODO: ? Add score keeping ? Incentivize winning faster instead of maximum caution? or do incentives need to be more organic.. dev some downside to blocking too much..
 - TODO: Using HELP should not increment time OR SHOULD IT (Thinking about options require ingame hesitation! mwahaha)

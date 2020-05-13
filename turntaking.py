@@ -1,10 +1,5 @@
 import cmd
-# turn = 1
-# myTurn = 5
-# enemyTurn = 10
-# myHp = 100
-# enemyHp = 100
-# stance = False
+import random
 
 class prompt(cmd.Cmd):
     """
@@ -25,17 +20,22 @@ class prompt(cmd.Cmd):
         return False # Do nothing and let time proceed if the user inputs enter without typing
 
     def postcmd(self, stop, line):
-        global turn, enemyTurn, stance
+        global turn, enemyTurn, myStance
         untilMyTurn = myTurn - turn
+
+        print("[debug] enemyTurn:",enemyTurn)
         #----------------------
         # Enemy acts if ready
-        if (enemyTurn < turn):
-            if stance == "blocking":
-                print("You block the enemy's attack!!!")
-            else:
-                print("The enemy punches you!")
-                attack("user", 10)
-            enemyTurn = turn+10
+        if (enemyTurn < turn): 
+            enemyActions = [block, jab, punch, uppercut]
+            random.choice(enemyActions)("enemy", "user")
+
+        # Did enemy kill the user?
+        if (myHp < 1):
+            print("\n\tYou fall to the ground, defeated!!!!!!!!!!!!!!!")
+            print()
+            print("But I guess you get up again? Cuz we just keep fighting 'round here.")
+            return True
         #-----------------------
         # End of Round Routine
         turn = turn+1
@@ -48,59 +48,102 @@ class prompt(cmd.Cmd):
             print("Preparing to act:",untilMyTurn*".")
         print("< My HP:",myHp,"|| Enemy HP:",enemyHp,">")
 
-        # Check for Game Over
+        # Did you kill the enemy?
         if (enemyHp < 1):
             print("\n\tThe enemy falls to the ground, defeated!!!!!!!!!!!!!!!")
-            return True
-        if (myHp < 1):
-            print("\n\tYou fall to the ground, defeated!!!!!!!!!!!!!!!")
             return True
         return cmd.Cmd.postcmd(self, stop, line)
 
     def do_jab(self, arg):
         """A light punch that is weak but fast"""
-        if try_act():
-            print("You throw a light jab!")
-            attack("enemy", 5)
-            wait(5)
+        jab("user", "enemy")
     def do_punch(self, arg):
         """A medium punch, not too fast, but not too weak"""
-        if try_act():
-            print("You throw a punch!")
-            attack("enemy", 10)
-            wait(10)
+        punch("user", "enemy")
     def do_uppercut(self, arg):
         """A powerful punch, commit to WIN!"""
-        if try_act():
-            print("You throw a fierce uppercut!")
-            attack("enemy", 15)
-            wait(15)
+        uppercut("user", "enemy")
     def do_block(self, arg):
         """Protect yourself from incoming attacks"""
-        global stance
-        if try_act():
-            print("You prepare for incoming attacks!")
-            stance = "blocking"
-            wait(5)
+        block("user", "enemy")
 
-def try_act():
+def try_act(char):
     global myTurn
-    if (myTurn < turn):
-        return True
-    else:
-        print("You are not ready to act yet...")
-        return False
 
-def wait(time):
-    global myTurn, turn
-    myTurn = turn+time
+    if char == "user":
+        if (myTurn < turn):
+            return True
+        else:
+            print("You are not ready to act yet...")
+            return False
+    if char == "enemy":
+        if (enemyTurn < turn):
+            return True
+        else:
+            return False
+
+def wait(char, time):
+    global myTurn, turn, enemyTurn
+    if char == "user":
+        myTurn = turn+time
+    if char == "enemy":
+        enemyTurn = turn+time
 
 def attack(target, damage):
     global enemyHp, myHp
     if target == "enemy":
-        enemyHp = enemyHp - damage
+        if enemyStance == "blocking":
+            print("The enemy blocks your attack!")
+            return False
+        else:
+            enemyHp = enemyHp - damage
+            return True
     if target == "user":
-        myHp = myHp - damage
+        if myStance == "blocking":
+            print("You block the enemy's attack!")
+            return False
+        else:
+            myHp = myHp - damage
+            return True
+
+def jab(char, tchar):
+    if try_act(char):
+            if char == "user":
+                print("You throw a jab!")
+            if char == "enemy":
+                print("The enemy throws a jab!")
+            attack(tchar, 5)
+            wait(char, 5)
+
+def punch(char, tchar):
+    if try_act(char):
+            if char == "user":
+                print("You throw a punch!")
+            if char == "enemy":
+                print("The enemy throws a punch!")
+            attack(tchar, 10)
+            wait(char, 10)
+
+def block(char, tchar):
+    global stance
+    if try_act(char):
+        if char == "user":
+            print("You get ready to defend yourself")
+            myStance = "blocking"
+        if char == "enemy":
+            enemyStance = "blocking"
+            if random.randint(0,1): # Replace this with a dynamic mechanic that determines whether you notice them preparing a defense
+                print("The enemy gets ready to defend themselves.")
+        wait(char, 5)
+
+def uppercut(char, tchar):
+    if try_act(char):
+            if char == "user":
+                print("You throw an uppercut!")
+            if char == "enemy":
+                print("The enemy throws an uppercut!")
+            attack(tchar, 15)
+            wait(char, 15)
 
 if __name__ == '__main__':
     print()
@@ -114,7 +157,8 @@ if __name__ == '__main__':
         enemyTurn = 10
         myHp = 10
         enemyHp = 10
-        stance = False
+        myStance = False
+        enemyStance = False
         print()
         print("An enemy approaches. Time to fight!")
         prompt().cmdloop()
