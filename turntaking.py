@@ -20,11 +20,12 @@ class prompt(cmd.Cmd):
         return False # Do nothing and let time proceed if the user inputs enter without typing
 
     def postcmd(self, stop, line):
-        global turn, enemyTurn, myStance
+        global turn, enemyTurn, myStance, enemyStance
         untilMyTurn = myTurn - turn
         #----------------------
         # Enemy acts if ready
         if (enemyTurn < turn): 
+            enemyStance = False
             enemyActions = [block, jab, punch, uppercut]
             random.choice(enemyActions)("enemy", "user")
 
@@ -41,7 +42,7 @@ class prompt(cmd.Cmd):
         # 2. Inform the user how long until they will be ready to act
         if (myTurn < turn):
             print("...you are ready to act.")
-            stance = False # Clear the stance when its your turn again. This is shortterm handling until we create a duration for stances 
+            myStance = False # Clear the stance when its your turn again. This is shortterm handling until we create a duration for stances 
         else:
             print("Preparing to act:",untilMyTurn*".")
         print("< My HP:",myHp,"|| Enemy HP:",enemyHp,">")
@@ -88,7 +89,7 @@ def wait(char, time):
         enemyTurn = turn+time
 
 def attack(target, damage):
-    global enemyHp, myHp
+    global enemyHp, myHp, myStance, enemyStance
     if target == "enemy":
         if enemyStance == "blocking":
             print("The enemy blocks your attack!")
@@ -123,10 +124,10 @@ def punch(char, tchar):
             wait(char, 10)
 
 def block(char, tchar):
-    global stance
+    global myStance, enemyStance
     if try_act(char):
         if char == "user":
-            print("You get ready to defend yourself")
+            print("You get ready to defend yourself.")
             myStance = "blocking"
         if char == "enemy":
             enemyStance = "blocking"
@@ -146,7 +147,7 @@ def uppercut(char, tchar):
 if __name__ == '__main__':
     print()
     print("Tips:")
-    print("- Type \"help\" to see the available commands")
+    print("- Type \"help\" to see the available commands.")
     print("- Time passes when any command is entered.")
     play = True
     while play == True:
