@@ -22,8 +22,6 @@ class prompt(cmd.Cmd):
     def postcmd(self, stop, line):
         global turn, enemyTurn, myStance
         untilMyTurn = myTurn - turn
-
-        print("[debug] enemyTurn:",enemyTurn)
         #----------------------
         # Enemy acts if ready
         if (enemyTurn < turn): 
