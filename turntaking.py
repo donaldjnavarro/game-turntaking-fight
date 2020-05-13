@@ -1,10 +1,10 @@
 import cmd
-turn = 1
-myTurn = 5
-enemyTurn = 10
-myHp = 100
-enemyHp = 100
-stance = False
+# turn = 1
+# myTurn = 5
+# enemyTurn = 10
+# myHp = 100
+# enemyHp = 100
+# stance = False
 
 class prompt(cmd.Cmd):
     """
@@ -14,7 +14,6 @@ class prompt(cmd.Cmd):
     - If user inputs a blank value, then the prompt does nothing and loops.
     - If another class inherits this class, then all of these functions will be available in their prompt, in addition to any functions within the child class.
     """
-
     prompt = ": "
 
     def do_quit(self, arg):
@@ -48,24 +47,36 @@ class prompt(cmd.Cmd):
         else:
             print("Preparing to act:",untilMyTurn*".")
         print("< My HP:",myHp,"|| Enemy HP:",enemyHp,">")
+
+        # Check for Game Over
+        if (enemyHp < 1):
+            print("\n\tThe enemy falls to the ground, defeated!!!!!!!!!!!!!!!")
+            return True
+        if (myHp < 1):
+            print("\n\tYou fall to the ground, defeated!!!!!!!!!!!!!!!")
+            return True
         return cmd.Cmd.postcmd(self, stop, line)
 
     def do_jab(self, arg):
+        """A light punch that is weak but fast"""
         if try_act():
             print("You throw a light jab!")
             attack("enemy", 5)
             wait(5)
     def do_punch(self, arg):
+        """A medium punch, not too fast, but not too weak"""
         if try_act():
             print("You throw a punch!")
             attack("enemy", 10)
             wait(10)
     def do_uppercut(self, arg):
+        """A powerful punch, commit to WIN!"""
         if try_act():
             print("You throw a fierce uppercut!")
             attack("enemy", 15)
             wait(15)
     def do_block(self, arg):
+        """Protect yourself from incoming attacks"""
         global stance
         if try_act():
             print("You prepare for incoming attacks!")
@@ -92,12 +103,18 @@ def attack(target, damage):
         myHp = myHp - damage
 
 if __name__ == '__main__':
-    prompt().cmdloop()
-
-####### TODO LIST
-# TODO: Using HELP should not increment time
-# TODO: Vary enemy actions
-# TODO: Vary the amount of damage done
-# TODO: Vary success rate of attacks
-# TODO: Add death handling / win-lose scenarios
-# TODO: Add personality templates for enemies: Different templates have different fighting preferences, and emotes for the user to try to interpret to predict their fighting style
+    print()
+    print("Tips:")
+    print("- Type \"help\" to see the available commands")
+    print("- Time passes when any command is entered.")
+    play = True
+    while play == True:
+        turn = 1
+        myTurn = 5
+        enemyTurn = 10
+        myHp = 10
+        enemyHp = 10
+        stance = False
+        print()
+        print("An enemy approaches. Time to fight!")
+        prompt().cmdloop()
