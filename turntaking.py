@@ -63,53 +63,32 @@ class prompt(cmd.Cmd):
         uppercut(pc, enemy)
     def do_block(self, arg):
         """Protect yourself from incoming attacks"""
-        block(pc, enemy)
-
-def attack(target, damage):
-    if target.stance == "blocking":
-        to_char(target, "You block the enemy's attack")
-        to_char(pc, "The enemy blocks your attack") if target is enemy else False
-        # if target == pc:
-        #     print("You block the enemy's attack!")
-        #     return False
-        # if target == enemy:
-        #     print("The enemy blocks your attack!")
-        #     return False
-    else:
-        target.hp = target.hp - damage
-        return True
+        block(pc)
 
 def jab(char, tchar):
-    if char.try_act():
+    if char.attack(tchar, 5):
         to_char(char, "You throw a jab!")
         to_char(tchar, "The enemy throws a jab!")
-        attack(tchar, 5)
-        char.turn = turn+5
+        tchar.hp = tchar.hp - 5
 
 def punch(char, tchar):
-    if char.try_act():
+    if char.attack(tchar, 10):
         to_char(char, "You throw a punch!")
         to_char(tchar, "The enemy throws a punch!")
-        attack(tchar, 10)
-        char.turn = turn+10
-
-def block(char, tchar):
-    if char.try_act():
-        if char == pc:
-            print("You get ready to defend yourself.")
-            pc.stance = "blocking"
-        if char == enemy:
-            enemy.stance = "blocking"
-            if random.randint(0,1): # Replace this with a dynamic mechanic that determines whether you notice them preparing a defense
-                print("The enemy gets ready to defend themselves.")
-        char.turn = turn+5
+        tchar.hp = tchar.hp - 10
 
 def uppercut(char, tchar):
-    if char.try_act():
+    if char.attack(tchar, 15):
         to_char(char, "You throw a uppercut!")
         to_char(tchar, "The enemy throws a uppercut!")
-        attack(tchar, 15)
-        char.turn = turn+15
+        tchar.hp = tchar.hp - 15
+
+def block(char, tchar=False):
+    if char.try_act():
+        to_char(char, "You get ready to defend yourself.")
+        char.stance = "blocking"
+        print("The enemy gets ready to defend themselves.") if char is enemy else False
+        char.turn = turn+5
 
 def to_char(char, msg):
     """Displays a message to the character, only if they are the user"""
@@ -131,6 +110,16 @@ class create_char(object):
         else:
             to_char(self, "You are not ready to act yet...")
             return False
+
+    def attack(self, target, wait):
+        if self.try_act():
+            self.turn = turn+wait
+            if target.stance == "blocking":
+                to_char(target, "You block the enemy's attack")
+                to_char(pc, "The enemy blocks your attack") if target is enemy else False
+                return False
+            else:
+                return True
 
 if __name__ == '__main__':
     print()
