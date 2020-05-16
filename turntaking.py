@@ -26,7 +26,7 @@ class prompt(cmd.Cmd):
         if (enemy.turn < turn): 
             enemy.stance = False
             enemyActions = [block, jab, punch, uppercut]
-            random.choice(enemyActions)("enemy", "user")
+            random.choice(enemyActions)(enemy, pc)
 
         # Did enemy kill the user?
         if (pc.hp < 1):
@@ -54,90 +54,67 @@ class prompt(cmd.Cmd):
 
     def do_jab(self, arg):
         """A light punch that is weak but fast"""
-        jab("user", "enemy")
+        jab(pc, enemy)
     def do_punch(self, arg):
         """A medium punch, not too fast, but not too weak"""
-        punch("user", "enemy")
+        punch(pc, enemy)
     def do_uppercut(self, arg):
         """A powerful punch, commit to WIN!"""
-        uppercut("user", "enemy")
+        uppercut(pc, enemy)
     def do_block(self, arg):
         """Protect yourself from incoming attacks"""
-        block("user", "enemy")
-
-def try_act(char):
-    if char == "user":
-        if (pc.turn < turn):
-            return True
-        else:
-            print("You are not ready to act yet...")
-            return False
-    if char == "enemy":
-        if (enemy.turn < turn):
-            return True
-        else:
-            return False
-
-def wait(char, time):
-    global turn
-    if char == "user":
-        pc.turn = turn+time
-    if char == "enemy":
-        enemy.turn = turn+time
+        block(pc, enemy)
 
 def attack(target, damage):
-    if target == "enemy":
-        if enemy.stance == "blocking":
-            print("The enemy blocks your attack!")
-            return False
-        else:
-            enemy.hp = enemy.hp - damage
-            return True
-    if target == "user":
-        if pc.stance == "blocking":
-            print("You block the enemy's attack!")
-            return False
-        else:
-            pc.hp = pc.hp - damage
-            return True
+    if target.stance == "blocking":
+        to_char(target, "You block the enemy's attack")
+        to_char(pc, "The enemy blocks your attack") if target is enemy else False
+        # if target == pc:
+        #     print("You block the enemy's attack!")
+        #     return False
+        # if target == enemy:
+        #     print("The enemy blocks your attack!")
+        #     return False
+    else:
+        target.hp = target.hp - damage
+        return True
 
 def jab(char, tchar):
-    if try_act(char):
-            if char == "user":
-                print("You throw a jab!")
-            if char == "enemy":
-                print("The enemy throws a jab!")
-            attack(tchar, 5)
-            wait(char, 5)
+    if char.try_act():
+        to_char(char, "You throw a jab!")
+        to_char(tchar, "The enemy throws a jab!")
+        attack(tchar, 5)
+        char.turn = turn+5
 
 def punch(char, tchar):
-    if try_act(char):
-            if char == "user":
-                print("You throw a punch!")
-            if char == "enemy":
-                print("The enemy throws a punch!")
-            attack(tchar, 10)
-            wait(char, 10)
+    if char.try_act():
+        to_char(char, "You throw a punch!")
+        to_char(tchar, "The enemy throws a punch!")
+        attack(tchar, 10)
+        char.turn = turn+10
 
 def block(char, tchar):
-    if try_act(char):
-        if char == "user":
+    if char.try_act():
+        if char == pc:
             print("You get ready to defend yourself.")
             pc.stance = "blocking"
-        if char == "enemy":
+        if char == enemy:
             enemy.stance = "blocking"
             if random.randint(0,1): # Replace this with a dynamic mechanic that determines whether you notice them preparing a defense
                 print("The enemy gets ready to defend themselves.")
-        wait(char, 5)
+        char.turn = turn+5
 
 def uppercut(char, tchar):
-    if try_act(char):
-            if char == "user":
-                print("You throw an uppercut!")
-            if char == "enemy":
-                print("The enemy throws an uppercut!")
-            attack(tchar, 15)
-            wait(char, 15)
+    if char.try_act():
+        to_char(char, "You throw a uppercut!")
+        to_char(tchar, "The enemy throws a uppercut!")
+        attack(tchar, 15)
+        char.turn = turn+15
+
+def to_char(char, msg):
+    """Displays a message to the character, only if they are the user"""
+    if char == pc:
+        print(msg)
 
 class create_char(object):
     """Creates a character: a player or npc."""
@@ -146,6 +123,14 @@ class create_char(object):
         self.stamina = 100
         self.stance = False
         self.turn = 1
+
+    def try_act(self):
+        global turn
+        if (self.turn < turn):
+            return True
+        else:
+            to_char(self, "You are not ready to act yet...")
+            return False
 
 if __name__ == '__main__':
     print()
