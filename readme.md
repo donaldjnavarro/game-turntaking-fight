@@ -16,6 +16,7 @@ By creating cooldowns on a player's ability to have their turn, we can create di
   - Opposed Challenges: To determine who wins physical contests, ie if your attack hits or not, or perhaps how much it damages
 - Max Vigor: Each actor has a personal max
 - Refreshing Vigor: Vigor is replenished each tick, so if you don't spend much vigor with your action then you will "rest" with a net gain
+  - Refreshing on individual ticks also means that there may be reasons to wait even when you can act, which feels more organic
 
 #### Damaging Vigor
 - Actions that damage your opponent's Vigor are a good way to "wear your opponent down" before a decisive action
@@ -29,6 +30,12 @@ By creating cooldowns on a player's ability to have their turn, we can create di
 
 ### Stuns
 - Temporarily unable to use Actions with a Vigor Cost
+
+### Feints
+- Enemy can use an action to send a fake attack message that actually begins a defensive stance for a short duration
+- ? This would require introducing misses else the user can see the attack did no damage?
+  - OR are feints best used against opponents who are blocking? and/or fake-blocking as a feint?
+- Why not feint all the time? Needs a high Vigor cost?
 
 ## Example Code
 // time: how long after this action until you can act again
@@ -50,9 +57,13 @@ var action = {
 - Should actors receive Vigor every time increment? And acting has a "net cost" to reduce Vigor, but if both actors commit to actions without fueling them with Vigor, then they can "rest"
 
 # TODO LIST
-- TODO: Vary enemy actions
 - TODO: Vary the amount of damage done
 - TODO: Vary success rate of attacks
+- TODO: Change hp to a wound system
+- TODO: Reduce or randomize the effectiveness of blocking
+- TODO: Change char data to class for both the user and the enemy; move all my* enemy* variables into the class
 - TODO: Add personality templates for enemies: Different templates have different fighting preferences, and emotes for the user to try to interpret to predict their fighting style
 - TODO: ? Add score keeping ? Incentivize winning faster instead of maximum caution? or do incentives need to be more organic.. dev some downside to blocking too much..
 - TODO: Using HELP should not increment time OR SHOULD IT (Thinking about options require ingame hesitation! mwahaha)
+- TODO: Remove do_ cmds and consolidate them into their functions outside of the cmdloop
+  - Value? Is the only value making the code more traceable?

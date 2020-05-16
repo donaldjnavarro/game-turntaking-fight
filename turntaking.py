@@ -20,17 +20,16 @@ class prompt(cmd.Cmd):
         return False # Do nothing and let time proceed if the user inputs enter without typing
 
     def postcmd(self, stop, line):
-        global turn, enemyTurn, myStance, enemyStance
-        untilMyTurn = myTurn - turn
+        global turn
         #----------------------
         # Enemy acts if ready
-        if (enemyTurn < turn): 
-            enemyStance = False
+        if (enemy.turn < turn): 
+            enemy.stance = False
             enemyActions = [block, jab, punch, uppercut]
             random.choice(enemyActions)("enemy", "user")
 
         # Did enemy kill the user?
-        if (myHp < 1):
+        if (pc.hp < 1):
             print("\n\tYou fall to the ground, defeated!!!!!!!!!!!!!!!")
             print()
             print("But I guess you get up again? Cuz we just keep fighting 'round here.")
@@ -40,15 +39,15 @@ class prompt(cmd.Cmd):
         turn = turn+1
         # 1. Inform the user if they are ready to act
         # 2. Inform the user how long until they will be ready to act
-        if (myTurn < turn):
+        if (pc.turn < turn):
             print("...you are ready to act.")
-            myStance = False # Clear the stance when its your turn again. This is shortterm handling until we create a duration for stances 
+            pc.stance = False # Clear the stance when its your turn again. This is shortterm handling until we create a duration for stances 
         else:
-            print("Preparing to act:",untilMyTurn*".")
-        print("< My HP:",myHp,"|| Enemy HP:",enemyHp,">")
+            print("Preparing to act:",(pc.turn - turn)*".")
+        print("< My HP:",pc.hp,"|| Enemy HP:",enemy.hp,">")
 
         # Did you kill the enemy?
-        if (enemyHp < 1):
+        if (enemy.hp < 1):
             print("\n\tThe enemy falls to the ground, defeated!!!!!!!!!!!!!!!")
             return True
         return cmd.Cmd.postcmd(self, stop, line)
@@ -67,42 +66,39 @@ class prompt(cmd.Cmd):
         block("user", "enemy")
 
 def try_act(char):
-    global myTurn
-
     if char == "user":
-        if (myTurn < turn):
+        if (pc.turn < turn):
             return True
         else:
             print("You are not ready to act yet...")
             return False
     if char == "enemy":
-        if (enemyTurn < turn):
+        if (enemy.turn < turn):
             return True
         else:
             return False
 
 def wait(char, time):
-    global myTurn, turn, enemyTurn
+    global turn
     if char == "user":
-        myTurn = turn+time
+        pc.turn = turn+time
     if char == "enemy":
-        enemyTurn = turn+time
+        enemy.turn = turn+time
 
 def attack(target, damage):
-    global enemyHp, myHp, myStance, enemyStance
     if target == "enemy":
-        if enemyStance == "blocking":
+        if enemy.stance == "blocking":
             print("The enemy blocks your attack!")
             return False
         else:
-            enemyHp = enemyHp - damage
+            enemy.hp = enemy.hp - damage
             return True
     if target == "user":
-        if myStance == "blocking":
+        if pc.stance == "blocking":
             print("You block the enemy's attack!")
             return False
         else:
-            myHp = myHp - damage
+            pc.hp = pc.hp - damage
             return True
 
 def jab(char, tchar):
@@ -124,13 +120,12 @@ def punch(char, tchar):
             wait(char, 10)
 
 def block(char, tchar):
-    global myStance, enemyStance
     if try_act(char):
         if char == "user":
             print("You get ready to defend yourself.")
-            myStance = "blocking"
+            pc.stance = "blocking"
         if char == "enemy":
-            enemyStance = "blocking"
+            enemy.stance = "blocking"
             if random.randint(0,1): # Replace this with a dynamic mechanic that determines whether you notice them preparing a defense
                 print("The enemy gets ready to defend themselves.")
         wait(char, 5)
@@ -144,6 +139,14 @@ def uppercut(char, tchar):
             attack(tchar, 15)
             wait(char, 15)
 
+class create_char(object):
+    """Creates a character: a player or npc."""
+    def __init__(self):
+        self.hp = 100
+        self.stamina = 100
+        self.stance = False
+        self.turn = 1
+
 if __name__ == '__main__':
     print()
     print("Tips:")
@@ -152,12 +155,9 @@ if __name__ == '__main__':
     play = True
     while play == True:
         turn = 1
-        myTurn = 5
-        enemyTurn = 10
-        myHp = 10
-        enemyHp = 10
-        myStance = False
-        enemyStance = False
+        pc = create_char()
+        enemy = create_char()
+        enemy.turn = 5 # arbitrary offset so we start by alternating turns
         print()
         print("An enemy approaches. Time to fight!")
         prompt().cmdloop()
