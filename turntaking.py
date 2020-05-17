@@ -82,10 +82,50 @@ def to_char(char, msg):
     if char == pc:
         print(msg)
 
+class create_attack(object):
+    """Creates an attack."""
+    def __init__(self, time, energy, dmg):
+        self.time =  time
+        self.energy = energy
+        self.dmg = dmg
+
+    def attack(self, char, tchar):
+        """Try to attack and if it is not blocked then return True"""
+        if char.try_act(self.energy):
+            wait(char, self.time)
+            tire(char, self.energy)
+            if blocked(char, tchar) is not True:
+                damage(tchar, self.dmg)
+                return True
+            else:
+                return False
+        else:
+            return False
+
+def blocked(char, tchar):
+    if tchar.stance == "blocking":
+        to_char(tchar, "You block the enemy's attack")
+        to_char(pc, "The enemy blocks your attack") if tchar is enemy else False
+        return True
+    else:
+        return False
+
+def damage(tchar, dmg):
+    """Deals damage to tchar. It is called within attack() so it shouldn't normally be called on its own"""
+    tchar.hp = tchar.hp - dmg
+
+def wait(char, time):
+    """Applies a cooldown until the char's next action"""
+    char.turn = char.turn + time
+
+def tire(char, cost):
+    """Reduces the char's stamina by the cost"""
+    char.stamina = char.stamina - cost
+
 class create_char(object):
-    """Creates a character: a player or npc."""
+    """Creates a character: a player or npc"""
     def __init__(self):
-        self.hp = 20
+        self.hp = 100
         self.stamina = 100
         self.stance = False
         self.turn = 0
@@ -94,7 +134,7 @@ class create_char(object):
         """Try to take an action and return True if it is your turn"""
         global turn
         if (self.turn < turn):
-            if self.stamina > cost*2:
+            if self.stamina > cost:
                 return True
             else:
                 to_char(self, "You are too tired to do that...")
@@ -102,36 +142,6 @@ class create_char(object):
         else:
             to_char(self, "You are not ready to act yet...")
             return False
-
-    def attack(self, tchar, cost):
-        """Try to attack and if it is not blocked then return True"""
-        if self.try_act(cost):
-            self.turn = turn+cost
-            self.stamina = self.stamina - cost*2
-            if tchar.stance == "blocking":
-                to_char(tchar, "You block the enemy's attack")
-                to_char(pc, "The enemy blocks your attack") if tchar is enemy else False
-                return False
-            else:
-                return True
-
-    def jab(self, tchar):
-        if self.attack(tchar, 5):
-            to_char(self, "You throw a jab!")
-            to_char(tchar, "The enemy throws a jab!")
-            tchar.hp = tchar.hp - 5
-
-    def punch(self, tchar):
-        if self.attack(tchar, 10):
-            to_char(self, "You throw a punch!")
-            to_char(tchar, "The enemy throws a punch!")
-            tchar.hp = tchar.hp - 10
-
-    def uppercut(self, tchar):
-        if self.attack(tchar, 15):
-            to_char(self, "You throw a uppercut!")
-            to_char(tchar, "The enemy throws a uppercut!")
-            tchar.hp = tchar.hp - 15
 
     def block(self, tchar=False):
         cost = 5
@@ -141,6 +151,21 @@ class create_char(object):
             print("The enemy gets ready to defend themselves.") if self is enemy else False
             self.turn = turn+cost
             self.stamina = self.stamina -2*cost
+
+    def jab(self, tchar):
+        if jab.attack(self, tchar):
+            to_char(self, "You throw a jab!")
+            to_char(tchar, "The enemy throws a jab!")
+
+    def punch(self, tchar):
+        if punch.attack(self, tchar):
+            to_char(self, "You throw a punch!")
+            to_char(tchar, "The enemy throws a punch!")
+
+    def uppercut(self, tchar):
+        if uppercut.attack(self, tchar):
+            to_char(self, "You throw a uppercut!")
+            to_char(tchar, "The enemy throws a uppercut!")
 
     def randomact(self, tchar):
         """Attempt to take a random action"""
@@ -188,6 +213,11 @@ if __name__ == '__main__':
     print("- Type \"help\" to see the available commands.")
     print("- Time passes when any command is entered.")
     play = True
+
+    jab = create_attack(5,20,10)
+    punch = create_attack(10,30,20)
+    uppercut = create_attack(15,40,30)
+
     while play == True:
         turn = 1
         pc = create_char()
