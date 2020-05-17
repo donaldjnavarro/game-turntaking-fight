@@ -17,13 +17,15 @@ class prompt(cmd.Cmd):
     
     def emptyline(self):
         # return cmd.Cmd.emptyline(self) # this will repeat the last entered command
+        pc.stamina = pc.stamina+1 if pc.stamina < 100 else 100
         return False # Do nothing and let time proceed if the user inputs enter without typing
 
     def postcmd(self, stop, line):
         global turn
         
-        # Enemy takes their turn
-        enemy.randomact(pc)
+        # Enemy takes their turn and if they aren't ready to act then they refresh
+        if not enemy.randomact(pc):
+            enemy.stamina = enemy.stamina+1 if enemy.stamina < 100 else 100
 
         # Check win and lose conditions
         if check_death():
@@ -32,6 +34,7 @@ class prompt(cmd.Cmd):
         #-----------------------
         # End of Round Routine
         turn = turn+1
+
         # 1. Inform the user if they are ready to act
         # 2. Inform the user how long until they will be ready to act
         if (pc.turn < turn):
@@ -39,7 +42,7 @@ class prompt(cmd.Cmd):
             pc.stance = False # Clear the stance when its your turn again. This is shortterm handling until we create a duration for stances 
         else:
             print("Preparing to act:",(pc.turn - turn)*".")
-        print("< My HP:",pc.hp,"|| Enemy HP:",enemy.hp,">")
+        print("< My HP:",pc.hp,"Stamina:",pc.stamina,"|| Enemy HP:",enemy.hp,"Stamina:",enemy.stamina,">")
         return cmd.Cmd.postcmd(self, stop, line)
 
     def do_jab(self, arg):
@@ -56,11 +59,13 @@ class prompt(cmd.Cmd):
         pc.block()
 
 def check_death():
+    """Check if anyone died"""
+    # Did everyone die?!
     if pc.hp < 1 and enemy.hp < 1:
         print("\n\tYou both knock each other out!!!!!!!!!!! IT'S A TIE!")
         return True
 
-    # Did enemy kill the user?
+    # Did the enemy kill you?
     if pc.hp < 1:
         print("\n\tYou fall to the ground, defeated!!!!!!!!!!!!!!!")
         print()
@@ -73,7 +78,7 @@ def check_death():
         return True        
 
 def to_char(char, msg):
-    """Displays a message to the character, only if they are the user"""
+    """Displays a message to the char, only if they are the user"""
     if char == pc:
         print(msg)
 
@@ -85,17 +90,24 @@ class create_char(object):
         self.stance = False
         self.turn = 0
 
-    def try_act(self):
+    def try_act(self, cost):
+        """Try to take an action and return True if it is your turn"""
         global turn
         if (self.turn < turn):
-            return True
+            if self.stamina > cost:
+                return True
+            else:
+                to_char(self, "You are too tired to do that...")
+                return False
         else:
             to_char(self, "You are not ready to act yet...")
             return False
 
-    def attack(self, tchar, wait):
-        if self.try_act():
-            self.turn = turn+wait
+    def attack(self, tchar, cost):
+        """Try to attack and if it is not blocked then return True"""
+        if self.try_act(cost):
+            self.turn = turn+cost
+            self.stamina = self.stamina - cost
             if tchar.stance == "blocking":
                 to_char(tchar, "You block the enemy's attack")
                 to_char(pc, "The enemy blocks your attack") if tchar is enemy else False
@@ -122,13 +134,15 @@ class create_char(object):
             tchar.hp = tchar.hp - 15
 
     def block(self, tchar=False):
-        if self.try_act():
+        cost = 5
+        if self.try_act(cost):
             to_char(self, "You get ready to defend yourself.")
             self.stance = "blocking"
             print("The enemy gets ready to defend themselves.") if self is enemy else False
-            self.turn = turn+5
+            self.turn = turn+cost
 
     def randomact(self, tchar):
+        """Attempt to take a random action"""
         if (self.turn < turn): 
             self.stance = False
             actions = [self.block, self.jab, self.punch, self.uppercut]
@@ -145,7 +159,7 @@ if __name__ == '__main__':
         turn = 1
         pc = create_char()
         enemy = create_char()
-        enemy.turn = 5 # arbitrary offset so we start by alternating turns
+        enemy.turn = 3 # arbitrary offset so we start by alternating turns
         print()
         print("An enemy approaches. Time to fight!")
         prompt().cmdloop()
