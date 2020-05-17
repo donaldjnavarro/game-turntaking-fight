@@ -94,7 +94,7 @@ class create_char(object):
         """Try to take an action and return True if it is your turn"""
         global turn
         if (self.turn < turn):
-            if self.stamina > cost:
+            if self.stamina > cost*2:
                 return True
             else:
                 to_char(self, "You are too tired to do that...")
@@ -107,7 +107,7 @@ class create_char(object):
         """Try to attack and if it is not blocked then return True"""
         if self.try_act(cost):
             self.turn = turn+cost
-            self.stamina = self.stamina - cost
+            self.stamina = self.stamina - cost*2
             if tchar.stance == "blocking":
                 to_char(tchar, "You block the enemy's attack")
                 to_char(pc, "The enemy blocks your attack") if tchar is enemy else False
@@ -140,6 +140,7 @@ class create_char(object):
             self.stance = "blocking"
             print("The enemy gets ready to defend themselves.") if self is enemy else False
             self.turn = turn+cost
+            self.stamina = self.stamina -2*cost
 
     def randomact(self, tchar):
         """Attempt to take a random action"""
