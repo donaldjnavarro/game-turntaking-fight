@@ -21,19 +21,14 @@ class prompt(cmd.Cmd):
 
     def postcmd(self, stop, line):
         global turn
-        #----------------------
-        # Enemy acts if ready
-        if (enemy.turn < turn): 
-            enemy.stance = False
-            enemyActions = [block, jab, punch, uppercut]
-            random.choice(enemyActions)(enemy, pc)
+        
+        # Enemy takes their turn
+        enemy_acts()
 
-        # Did enemy kill the user?
-        if (pc.hp < 1):
-            print("\n\tYou fall to the ground, defeated!!!!!!!!!!!!!!!")
-            print()
-            print("But I guess you get up again? Cuz we just keep fighting 'round here.")
+        # Check win and lose conditions
+        if check_death():
             return True
+
         #-----------------------
         # End of Round Routine
         turn = turn+1
@@ -45,11 +40,6 @@ class prompt(cmd.Cmd):
         else:
             print("Preparing to act:",(pc.turn - turn)*".")
         print("< My HP:",pc.hp,"|| Enemy HP:",enemy.hp,">")
-
-        # Did you kill the enemy?
-        if (enemy.hp < 1):
-            print("\n\tThe enemy falls to the ground, defeated!!!!!!!!!!!!!!!")
-            return True
         return cmd.Cmd.postcmd(self, stop, line)
 
     def do_jab(self, arg):
@@ -64,6 +54,30 @@ class prompt(cmd.Cmd):
     def do_block(self, arg):
         """Protect yourself from incoming attacks"""
         block(pc)
+
+def enemy_acts():
+    if (enemy.turn < turn): 
+        enemy.stance = False
+        enemyActions = [block, jab, punch, uppercut]
+        random.choice(enemyActions)(enemy, pc)
+        return True
+
+def check_death():
+    if pc.hp < 1 and enemy.hp < 1:
+        print("\n\tYou both knock each other out!!!!!!!!!!! IT'S A TIE!")
+        return True
+
+    # Did enemy kill the user?
+    if pc.hp < 1:
+        print("\n\tYou fall to the ground, defeated!!!!!!!!!!!!!!!")
+        print()
+        print("But I guess you get up again? Cuz we just keep fighting 'round here.")
+        return True
+
+    # Did you kill the enemy?
+    if enemy.hp < 1:
+        print("\n\tThe enemy falls to the ground, defeated!!!!!!!!!!!!!!!")
+        return True        
 
 def jab(char, tchar):
     if char.attack(tchar, 5):
@@ -98,10 +112,10 @@ def to_char(char, msg):
 class create_char(object):
     """Creates a character: a player or npc."""
     def __init__(self):
-        self.hp = 100
+        self.hp = 20
         self.stamina = 100
         self.stance = False
-        self.turn = 1
+        self.turn = 0
 
     def try_act(self):
         global turn
