@@ -1,14 +1,3 @@
-### Time Visibility
-- Enemy Speed: The user gets semi-reliable view into how long until their opponent's next action
-
-### Vigor
-- Uses:
-  - Action Cost: Actions have a Vigor cost in addition to a Time Requirement
-  - Opposed Challenges: To determine who wins physical contests, ie if your attack hits or not, or perhaps how much it damages
-- Max Vigor: Each actor has a personal max
-- Refreshing Vigor: Vigor is replenished each tick, so if you don't spend much vigor with your action then you will "rest" with a net gain
-  - Refreshing on individual ticks also means that there may be reasons to wait even when you can act, which feels more organic
-
 #### Damaging Vigor
 - Actions that damage your opponent's Vigor are a good way to "wear your opponent down" before a decisive action
 
@@ -17,7 +6,9 @@
 
 ### Blocks and Preparations
 - Some actions may be designed to enhance your own stats for a short period, or against certain types of actions from your opponent
-- Gameplay: Timing the usage of defensive skills before an attack 
+  - Gameplay: Timing the usage of defensive skills before an attack 
+- Intimidate: Impose a reduction in your opponents selection of skills. Reduce the list by one and make the strongest be the last item? Or actually create an aggressiveness metric for all skills and use it to modulate behavior
+  - How would intimidate be a worthwhile use of an action? Just a very low cost/time action? Or perhaps a no stamina action? But then would you ever not?
 
 ### Stuns
 - Temporarily unable to use Actions with a Vigor Cost
@@ -29,19 +20,19 @@
 - Why not feint all the time? Needs a high Vigor cost?
 
 # Questions
-- Is Vigor also HP or do these need to be separate metrics?
-- Should the damage inflicted by an action be assigned to the action? Or should it be based on the Vigor cost alone?
-  - Should the user be able to increase the Vigor cost of any action and thereby emphasize the damage it can do?
-    - Should this be the default way costs of actions are determined? Modular actions? EX: <light> <punch> ? Or should there be preparation actions "prepare strength" that increase the next action's power?
-      - Preparation actions could have a "chance to display" that determines whether the opponent gets a message showing that you are using a preparation. This chance to display could introduce a subset of learnable skills for feinting and for avoiding telegraphing
-  - Should a similar system be used to measure the effects of defenses? Should defenses reduce incoming damage by the Time spent? Or should a user have an option to spend Vigor on a defense to enhance it?
+- Should the user be able to increase the Vigor cost of any action and thereby emphasize the damage it can do?
+  - Should this be the default way costs of actions are determined? Modular actions? EX: <light> <punch> ? Or should there be preparation actions "prepare strength" that increase the next action's power?
+    - Preparation actions could have a "chance to display" that determines whether the opponent gets a message showing that you are using a preparation. This chance to display could introduce a subset of learnable skills for feinting and for avoiding telegraphing
 - What is the difference between taking wounds and taking vigor damage?
 
 # TODO LIST
 - TODO: Stamina cost needs to differ from the cooldown more, else all the stamina spent always refreshes before the next turn
+- TODO: Create a class for attacks (damage range, time, stamina)
 - TODO: Vary the amount of damage done 
-- TODO: Vary success rate of attacks
+- TODO: Vary success rate of attack() based on opposed stamina check
+- TODO: Add intuition check that determines whether enemy actions and warnings display 
 - TODO: Change hp to a wound system
+  - Each wound causes a pain rank which affects stamina? Reduces stamina cap? Magnifies stamina costs?
 - TODO: Reduce or randomize the effectiveness of blocking
 - TODO: Add personality templates for enemies: Different templates have different fighting preferences, and emotes for the user to try to interpret to predict their fighting style
-- TODO: Using HELP should not increment time OR SHOULD IT (Thinking about options require ingame hesitation! mwahaha)
+- TODO: Using HELP should not increment time

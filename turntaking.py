@@ -42,7 +42,7 @@ class prompt(cmd.Cmd):
             pc.stance = False # Clear the stance when its your turn again. This is shortterm handling until we create a duration for stances 
         else:
             print("Preparing to act:",(pc.turn - turn)*".")
-        print("< My HP:",pc.hp,"Stamina:",pc.stamina,"|| Enemy HP:",enemy.hp,"Stamina:",enemy.stamina,">")
+        print("< You are",pc.checkhp(),"and",pc.checkstamina(),">\n< Your opponent is",enemy.checkhp(),"and",enemy.checkstamina(),">")
         return cmd.Cmd.postcmd(self, stop, line)
 
     def do_jab(self, arg):
@@ -78,7 +78,7 @@ def check_death():
         return True        
 
 def to_char(char, msg):
-    """Displays a message to the char, only if they are the user"""
+    """Displays a message to the char, only if they are the user."""
     if char == pc:
         print(msg)
 
@@ -149,7 +149,39 @@ class create_char(object):
             actions = [self.block, self.jab, self.punch, self.uppercut]
             random.choice(actions)(tchar)
             return True
-            
+
+    def checkhp(self):
+        if self.hp == 100:
+            return "healthy"
+        if self.hp > 75:
+            return "bruised"
+        if self.hp > 50:
+            return "injured"
+        if self.hp > 25:
+            return "wounded"
+        if self.hp > 10:
+            return "severely wounded"
+        if self.hp > 0:
+            return "on death's door"
+
+    def checkstamina(self):
+        if self.stamina > 90:
+            return "full of energy"
+        if self.stamina > 75:
+            return "energetic"
+        if self.stamina > 66:
+            return "a bit tired"
+        if self.stamina > 50:
+            return "tired"
+        if self.stamina > 33:
+            return "very tired"
+        if self.stamina > 20:
+            return "exhausted"
+        if self.stamina > 10:
+            return "completely exhausted"
+        if self.stamina > 0:
+            return "running on fumes"
+
 if __name__ == '__main__':
     print()
     print("Tips:")
