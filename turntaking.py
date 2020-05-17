@@ -23,7 +23,7 @@ class prompt(cmd.Cmd):
         global turn
         
         # Enemy takes their turn
-        enemy_acts()
+        enemy.randomact(pc)
 
         # Check win and lose conditions
         if check_death():
@@ -44,23 +44,16 @@ class prompt(cmd.Cmd):
 
     def do_jab(self, arg):
         """A light punch that is weak but fast"""
-        jab(pc, enemy)
+        pc.jab(enemy)
     def do_punch(self, arg):
         """A medium punch, not too fast, but not too weak"""
-        punch(pc, enemy)
+        pc.punch(enemy)
     def do_uppercut(self, arg):
         """A powerful punch, commit to WIN!"""
-        uppercut(pc, enemy)
+        pc.uppercut(enemy)
     def do_block(self, arg):
         """Protect yourself from incoming attacks"""
-        block(pc)
-
-def enemy_acts():
-    if (enemy.turn < turn): 
-        enemy.stance = False
-        enemyActions = [block, jab, punch, uppercut]
-        random.choice(enemyActions)(enemy, pc)
-        return True
+        pc.block()
 
 def check_death():
     if pc.hp < 1 and enemy.hp < 1:
@@ -78,31 +71,6 @@ def check_death():
     if enemy.hp < 1:
         print("\n\tThe enemy falls to the ground, defeated!!!!!!!!!!!!!!!")
         return True        
-
-def jab(char, tchar):
-    if char.attack(tchar, 5):
-        to_char(char, "You throw a jab!")
-        to_char(tchar, "The enemy throws a jab!")
-        tchar.hp = tchar.hp - 5
-
-def punch(char, tchar):
-    if char.attack(tchar, 10):
-        to_char(char, "You throw a punch!")
-        to_char(tchar, "The enemy throws a punch!")
-        tchar.hp = tchar.hp - 10
-
-def uppercut(char, tchar):
-    if char.attack(tchar, 15):
-        to_char(char, "You throw a uppercut!")
-        to_char(tchar, "The enemy throws a uppercut!")
-        tchar.hp = tchar.hp - 15
-
-def block(char, tchar=False):
-    if char.try_act():
-        to_char(char, "You get ready to defend yourself.")
-        char.stance = "blocking"
-        print("The enemy gets ready to defend themselves.") if char is enemy else False
-        char.turn = turn+5
 
 def to_char(char, msg):
     """Displays a message to the character, only if they are the user"""
@@ -125,16 +93,48 @@ class create_char(object):
             to_char(self, "You are not ready to act yet...")
             return False
 
-    def attack(self, target, wait):
+    def attack(self, tchar, wait):
         if self.try_act():
             self.turn = turn+wait
-            if target.stance == "blocking":
-                to_char(target, "You block the enemy's attack")
-                to_char(pc, "The enemy blocks your attack") if target is enemy else False
+            if tchar.stance == "blocking":
+                to_char(tchar, "You block the enemy's attack")
+                to_char(pc, "The enemy blocks your attack") if tchar is enemy else False
                 return False
             else:
                 return True
 
+    def jab(self, tchar):
+        if self.attack(tchar, 5):
+            to_char(self, "You throw a jab!")
+            to_char(tchar, "The enemy throws a jab!")
+            tchar.hp = tchar.hp - 5
+
+    def punch(self, tchar):
+        if self.attack(tchar, 10):
+            to_char(self, "You throw a punch!")
+            to_char(tchar, "The enemy throws a punch!")
+            tchar.hp = tchar.hp - 10
+
+    def uppercut(self, tchar):
+        if self.attack(tchar, 15):
+            to_char(self, "You throw a uppercut!")
+            to_char(tchar, "The enemy throws a uppercut!")
+            tchar.hp = tchar.hp - 15
+
+    def block(self, tchar=False):
+        if self.try_act():
+            to_char(self, "You get ready to defend yourself.")
+            self.stance = "blocking"
+            print("The enemy gets ready to defend themselves.") if self is enemy else False
+            self.turn = turn+5
+
+    def randomact(self, tchar):
+        if (self.turn < turn): 
+            self.stance = False
+            actions = [self.block, self.jab, self.punch, self.uppercut]
+            random.choice(actions)(tchar)
+            return True
+            
 if __name__ == '__main__':
     print()
     print("Tips:")
