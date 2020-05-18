@@ -18,14 +18,22 @@ class prompt(cmd.Cmd):
     def emptyline(self):
         # return cmd.Cmd.emptyline(self) # this will repeat the last entered command
         pc.stamina = pc.stamina+1 if pc.stamina < 100 else 100
+        print("You bide your time and watch your opponent...")
         return False # Do nothing and let time proceed if the user inputs enter without typing
+
+    def precmd(self, line):
+        print()
+        return cmd.Cmd.precmd(self, line)
 
     def postcmd(self, stop, line):
         global turn
+        print()
         
         # Enemy takes their turn and if they aren't ready to act then they refresh
         if not enemy.randomact(pc):
             enemy.stamina = enemy.stamina+1 if enemy.stamina < 100 else 100
+        else:
+            print()
 
         # Check win and lose conditions
         if check_death():
@@ -34,15 +42,14 @@ class prompt(cmd.Cmd):
         #-----------------------
         # End of Round Routine
         turn = turn+1
-
         # 1. Inform the user if they are ready to act
         # 2. Inform the user how long until they will be ready to act
         if (pc.turn < turn):
-            print("...you are ready to act.")
+            status = "and ready to act!"
             pc.stance = False # Clear the stance when its your turn again. This is shortterm handling until we create a duration for stances 
         else:
-            print("Preparing to act:",(pc.turn - turn)*".")
-        print("< You are",pc.checkhp(),"and",pc.checkstamina(),">\n< Your opponent is",enemy.checkhp(),"and",enemy.checkstamina(),">")
+            status = "and preparing to act."+(pc.turn - turn)*"."
+        print("< You are",pc.checkhp(),"and",pc.checkstamina(),status,">\n< Your opponent is",enemy.checkhp(),"and",enemy.checkstamina(),">")
         return cmd.Cmd.postcmd(self, stop, line)
 
     def do_jab(self, arg):
@@ -148,24 +155,24 @@ class create_char(object):
         if self.try_act(cost):
             to_char(self, "You get ready to defend yourself.")
             self.stance = "blocking"
-            print("The enemy gets ready to defend themselves.") if self is enemy else False
+            print("<- The enemy gets ready to defend themselves.") if self is enemy else False
             self.turn = turn+cost
             self.stamina = self.stamina -2*cost
 
     def jab(self, tchar):
         if jab.attack(self, tchar):
             to_char(self, "You throw a jab!")
-            to_char(tchar, "The enemy throws a jab!")
+            to_char(tchar, "<- The enemy throws a jab!")
 
     def punch(self, tchar):
         if punch.attack(self, tchar):
             to_char(self, "You throw a punch!")
-            to_char(tchar, "The enemy throws a punch!")
+            to_char(tchar, "<- The enemy throws a punch!")
 
     def uppercut(self, tchar):
         if uppercut.attack(self, tchar):
             to_char(self, "You throw a uppercut!")
-            to_char(tchar, "The enemy throws a uppercut!")
+            to_char(tchar, "<- The enemy throws a uppercut!")
 
     def randomact(self, tchar):
         """Attempt to take a random action"""
