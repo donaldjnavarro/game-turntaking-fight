@@ -17,7 +17,7 @@ class prompt(cmd.Cmd):
     
     def emptyline(self):
         # return cmd.Cmd.emptyline(self) # this will repeat the last entered command
-        pc.stamina = pc.stamina+1 if pc.stamina < 100 else 100
+        pc.rest()
         return False # Do nothing and let time proceed if the user inputs enter without typing
 
     def precmd(self, line):
@@ -32,7 +32,7 @@ class prompt(cmd.Cmd):
         
         # Enemy takes their turn and if they aren't ready to act then they refresh
         if not enemy.randomact(pc):
-            enemy.stamina = enemy.stamina+1 if enemy.stamina < 100 else 100
+            enemy.rest()
 
         # Check win and lose conditions
         if check_death():
@@ -214,6 +214,11 @@ class create_char(object):
     def tire(self, cost):
         """Reduces the char's stamina by the cost"""
         self.stamina = self.stamina - cost
+
+    def rest(self):
+        if self.stamina < 100:
+            to_char(self, "You bide your time and regain some energy.")
+        self.stamina = self.stamina+1 if self.stamina < 100 else 100
 
     def block(self, tchar=False):
         energy = 10
