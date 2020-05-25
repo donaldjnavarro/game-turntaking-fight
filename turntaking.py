@@ -33,8 +33,6 @@ class prompt(cmd.Cmd):
         # Enemy takes their turn and if they aren't ready to act then they refresh
         if not enemy.randomact(pc):
             enemy.stamina = enemy.stamina+1 if enemy.stamina < 100 else 100
-        else:
-            print()
 
         # Check win and lose conditions
         if check_death():
@@ -157,9 +155,8 @@ class create_attack(object):
                 # if hit succeeded
                 if blocked(char, tchar) is not True:
                     to_char(char, "...and the "+self.name+" hits!")
-                    to_char(tchar, " <- and the "+self.name+" hits you!")
+                    to_char(tchar, " <- and the "+self.name+" hits you!\n")
                     damage(tchar, self.dmg)
-                    print()
                     return True
                 else:
                     return False
