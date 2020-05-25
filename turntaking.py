@@ -48,9 +48,9 @@ class prompt(cmd.Cmd):
             status = "and ready to act!"
             pc.stance = False # Clear the stance when its your turn again. This is shortterm handling until we create a duration for stances 
         else:
+            status = "and preparing to act."+(pc.turn - nowTurn)*"."
             if pc.stance: 
-                status = "and "+pc.stance
-            status = status+" and preparing to act."+(pc.turn - nowTurn)*"."
+                status = "and "+pc.stance+" "+status
         
         print("< You are",pc.checkhp(),"and",pc.checkstamina(),status,">\n< Your opponent is",enemy.checkhp(),"and",enemy.checkstamina(),">")
         return cmd.Cmd.postcmd(self, stop, line)
