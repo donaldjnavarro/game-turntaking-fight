@@ -10,6 +10,8 @@ class prompt(cmd.Cmd):
     - If another class inherits this class, then all of these functions will be available in their prompt, in addition to any functions within the child class.
     """
     prompt = ": "
+    global tempPromptLength
+    tempPromptLength = 0
 
     def do_quit(self, arg):
         """Close the program. Nothing is saved."""
@@ -21,7 +23,8 @@ class prompt(cmd.Cmd):
         return False # Do nothing and let time proceed if the user inputs enter without typing
 
     def precmd(self, line):
-        # print()
+        global tempPromptLength
+        print(" "+"-"*tempPromptLength)
         return cmd.Cmd.precmd(self, line)
 
     def postcmd(self, stop, line):
@@ -51,7 +54,14 @@ class prompt(cmd.Cmd):
             if pc.stance: 
                 status = "and "+pc.stance+" "+status
         
-        print("< You are",pc.checkhp(),"and",pc.checkstamina(),status,">\n< Your opponent is",enemy.checkhp(),"and",enemy.checkstamina(),">")
+        global tempPromptLength
+        myTempPrompt = "| You are "+pc.checkhp()+" and "+pc.checkstamina()+" "+status
+        enemyTempPrompt = "| Your opponent is "+enemy.checkhp()+" and "+enemy.checkstamina()
+        tempPromptLength = len(myTempPrompt) if (len(myTempPrompt) > len(enemyTempPrompt)) else len(enemyTempPrompt)
+        print(" "+"-"*tempPromptLength)
+        print(myTempPrompt)
+        print(enemyTempPrompt)
+        print(" "+"-"*tempPromptLength)
         return cmd.Cmd.postcmd(self, stop, line)
 
     def do_jab(self, arg):
@@ -71,25 +81,25 @@ def check_death():
     """Check if anyone died"""
     # Did everyone die?!
     if pc.hp < 1 and enemy.hp < 1:
-        print("\n\tYou both knock each other out!!!!!!!!!!! IT'S A TIE!")
+        print("\tYou both knock each other out!!!!!!!!!!! IT'S A TIE!")
         return True
 
     # Did the enemy kill you?
     if pc.hp < 1:
-        print("\n\tYou fall to the ground, defeated!!!!!!!!!!!!!!!")
+        print("\tYou fall to the ground, defeated!!!!!!!!!!!!!!!")
         print()
         print("But I guess you get up again? Cuz we just keep fighting 'round here.")
         return True
 
     # Did you kill the enemy?
     if enemy.hp < 1:
-        print("\n\tThe enemy falls to the ground, defeated!!!!!!!!!!!!!!!")
+        print("\tThe enemy falls to the ground, defeated!!!!!!!!!!!!!!!")
         return True        
 
 def to_char(char, msg):
     """Displays a message to the char, only if they are the user."""
     if char == pc:
-        print(msg)
+        print(" "+msg)
 
 import random
 def dice(number, sides):
@@ -133,10 +143,10 @@ def challenge(cstat, tstat):
 
 class create_attack(object):
     """Creates an attack."""
-    def __init__(self, name, time, energy, dmg):
-        self.time =  time
-        self.energy = energy
-        self.dmg = dmg
+    def __init__(self, name, level):
+        self.time =  level*3
+        self.energy = level*5
+        self.dmg = level*10
         self.name = name
 
     def attack(self, char, tchar):
@@ -286,9 +296,9 @@ if __name__ == '__main__':
     print("- Type \"help\" to see the available commands.")
     print("- Time passes when any command is entered.")
     play = True
-    jab = create_attack("jab", 3,20,10)
-    punch = create_attack("punch", 6,30,20)
-    uppercut = create_attack("uppercut", 9,40,30)
+    jab = create_attack("jab", 1)
+    punch = create_attack("punch", 2)
+    uppercut = create_attack("uppercut", 3)
 
     while play == True:
         nowTurn = 1
