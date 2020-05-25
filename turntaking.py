@@ -116,7 +116,6 @@ def to_char(char, msg):
     if char == pc:
         print(" "+msg)
 
-import random
 def dice(number, sides):
     rolled = 0
     for x in range(number):
@@ -173,8 +172,8 @@ class create_attack(object):
             to_char(char, "You attempt to "+self.name+"...")
             to_char(tchar, " <- The enemy attempts to "+self.name+"...")
             # try to hit
-            cpow = ((char.stamina)/10)+self.energy
-            tpow = (tchar.stamina)/10
+            cpow = char.stamina+self.energy
+            tpow = tchar.stamina
             # print("[debug]",cpow,"vs",tpow)
             if challenge(cpow, tpow):
                 # if hit succeeded
@@ -242,8 +241,11 @@ class create_char(object):
 
     def rest(self):
         if self.stamina < 10:
-            to_char(self, "You bide your time and regain some energy.")
-        self.stamina = self.stamina+1 if self.stamina < 10 else 10
+            if random.randint(0,self.hp): # recover chance based on lack of wounds
+                to_char(self, "You bide your time and regain some energy.")
+                self.stamina = self.stamina+1 
+            else:
+                to_char(self, "You try to focus, but are too disoriented.")
 
     def block(self, tchar=False):
         energy = 1
@@ -251,7 +253,7 @@ class create_char(object):
             to_char(self, "You get ready to defend yourself.")
             self.stance = "blocking"
             print("<- The enemy gets ready to defend themselves.") if self is enemy else False
-            self.wait(3)
+            self.wait(energy)
             self.tire(energy)
 
     def jab(self, tchar):
