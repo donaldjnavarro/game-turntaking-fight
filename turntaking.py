@@ -18,15 +18,15 @@ class prompt(cmd.Cmd):
     def emptyline(self):
         # return cmd.Cmd.emptyline(self) # this will repeat the last entered command
         pc.stamina = pc.stamina+1 if pc.stamina < 100 else 100
-        print("You bide your time and watch your opponent...")
         return False # Do nothing and let time proceed if the user inputs enter without typing
 
     def precmd(self, line):
-        print()
+        # print()
         return cmd.Cmd.precmd(self, line)
 
     def postcmd(self, stop, line):
-        global turn
+        global now, nowTurn
+        # print("[debug] nowTurn",nowTurn,", pc.turn",pc.turn,", enemy.turn",enemy.turn)
         print()
         
         # Enemy takes their turn and if they aren't ready to act then they refresh
@@ -41,16 +41,17 @@ class prompt(cmd.Cmd):
 
         #-----------------------
         # End of Round Routine
-        turn = turn+1
+        nowTurn = nowTurn+1
         # 1. Inform the user if they are ready to act
         # 2. Inform the user how long until they will be ready to act
-        if (pc.turn < turn):
+        if (pc.myTurn()):
             status = "and ready to act!"
             pc.stance = False # Clear the stance when its your turn again. This is shortterm handling until we create a duration for stances 
         elif (pc.stance):
             status = "and "+pc.stance
         else:
-            status = "and preparing to act."+(pc.turn - turn)*"."
+            status = "and preparing to act."+(pc.turn - nowTurn)*"."
+        
         print("< You are",pc.checkhp(),"and",pc.checkstamina(),status,">\n< Your opponent is",enemy.checkhp(),"and",enemy.checkstamina(),">")
         return cmd.Cmd.postcmd(self, stop, line)
 
@@ -125,7 +126,7 @@ def damage(tchar, dmg):
 
 def wait(char, time):
     """Applies a cooldown until the char's next action"""
-    char.turn = char.turn + time
+    char.turn = nowTurn + time
 
 def tire(char, cost):
     """Reduces the char's stamina by the cost"""
@@ -139,10 +140,17 @@ class create_char(object):
         self.stance = False
         self.turn = 0
 
+    def myTurn(self):
+        global nowTurn
+        if (self.turn < nowTurn):
+            return True
+        else:
+            return False
+
     def try_act(self, cost):
         """Try to take an action and return True if it is your turn"""
-        global turn
-        if (self.turn < turn):
+        global nowTurn
+        if self.myTurn():
             if self.stamina > cost:
                 return True
             else:
@@ -158,7 +166,7 @@ class create_char(object):
             to_char(self, "You get ready to defend yourself.")
             self.stance = "blocking"
             print("<- The enemy gets ready to defend themselves.") if self is enemy else False
-            self.turn = turn+cost
+            self.turn = nowTurn+cost
             self.stamina = self.stamina -2*cost
 
     def jab(self, tchar):
@@ -178,7 +186,7 @@ class create_char(object):
 
     def randomact(self, tchar):
         """Attempt to take a random action"""
-        if (self.turn < turn): 
+        if (self.turn < nowTurn): 
             self.stance = False
             actions = [self.block, self.jab, self.punch, self.uppercut]
             random.choice(actions)(tchar)
@@ -228,7 +236,7 @@ if __name__ == '__main__':
     uppercut = create_attack(15,40,30)
 
     while play == True:
-        turn = 1
+        nowTurn = 1
         pc = create_char()
         enemy = create_char()
         enemy.turn = 3 # arbitrary offset so we start by alternating turns
