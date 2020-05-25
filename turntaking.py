@@ -27,6 +27,7 @@ class prompt(cmd.Cmd):
     def postcmd(self, stop, line):
         global now, nowTurn
         # print("[debug] nowTurn",nowTurn,", pc.turn",pc.turn,", enemy.turn",enemy.turn)
+        print("pc.stamina",pc.stamina,"enemy.stamina",enemy.stamina)
         print()
         
         # Enemy takes their turn and if they aren't ready to act then they refresh
@@ -161,14 +162,13 @@ class create_char(object):
             return False
 
     def block(self, tchar=False):
-        cost = 5
-        time = 3
-        if self.try_act(cost):
+        energy = 10
+        if self.try_act(energy):
             to_char(self, "You get ready to defend yourself.")
             self.stance = "blocking"
             print("<- The enemy gets ready to defend themselves.") if self is enemy else False
-            self.turn = nowTurn+time
-            self.stamina = self.stamina -2*cost
+            wait(self, 3)
+            tire(self, energy)
 
     def jab(self, tchar):
         if jab.attack(self, tchar):
@@ -224,6 +224,8 @@ class create_char(object):
             return "completely exhausted"
         if self.stamina > 0:
             return "running on fumes"
+        if self.stamina <= 0:
+            return "spent"
 
 if __name__ == '__main__':
     print()
