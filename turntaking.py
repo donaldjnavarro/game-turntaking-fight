@@ -114,8 +114,8 @@ class create_attack(object):
 
 def blocked(char, tchar):
     if tchar.stance == "blocking":
-        to_char(tchar, "You block the enemy's attack")
-        to_char(pc, "The enemy blocks your attack") if tchar is enemy else False
+        to_char(tchar, "You block the enemy's attack.")
+        to_char(pc, "The enemy blocks your attack.") if tchar is enemy else False
         return True
     else:
         return False
@@ -162,11 +162,12 @@ class create_char(object):
 
     def block(self, tchar=False):
         cost = 5
+        time = 3
         if self.try_act(cost):
             to_char(self, "You get ready to defend yourself.")
             self.stance = "blocking"
             print("<- The enemy gets ready to defend themselves.") if self is enemy else False
-            self.turn = nowTurn+cost
+            self.turn = nowTurn+time
             self.stamina = self.stamina -2*cost
 
     def jab(self, tchar):
@@ -230,10 +231,9 @@ if __name__ == '__main__':
     print("- Type \"help\" to see the available commands.")
     print("- Time passes when any command is entered.")
     play = True
-
-    jab = create_attack(5,20,10)
-    punch = create_attack(10,30,20)
-    uppercut = create_attack(15,40,30)
+    jab = create_attack(3,20,10)
+    punch = create_attack(6,30,20)
+    uppercut = create_attack(9,40,30)
 
     while play == True:
         nowTurn = 1
