@@ -65,12 +65,12 @@ class prompt(cmd.Cmd):
 
         # newprompt
         print(" "+"-"*linebreak)
-        print("| Health:  "+">>"*int(pc.hp/10))
-        print("| Stamina: "+"<<"*int(pc.stamina/10))
-        waiting = "Ready to act!" if pc.myTurn() else ((pc.turn - nowTurn+1)*".")
-        print("| Waiting to act: "+waiting)
+        print("| Health  | "+"> "*int(pc.hp/10))
+        print("| Stamina | "+"< "*int(pc.stamina/10))
+        waiting = "READY" if pc.myTurn() else ((pc.turn - nowTurn+1)*".")
+        print("| Waiting | "+waiting)
         print(" "+"-"*linebreak)
-        print("| Enemy:   "+">>"*int(enemy.hp/10))
+        print("| Enemy   | "+"> "*int(enemy.hp/10))
         print(" "+"-"*linebreak)
         return cmd.Cmd.postcmd(self, stop, line)
 
