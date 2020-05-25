@@ -24,7 +24,10 @@ class prompt(cmd.Cmd):
 
     def precmd(self, line):
         global linebreak
-        print(" "+"-"*linebreak)
+        # print(" "+"-"*linebreak)
+        print()
+        print()
+        print()
         return cmd.Cmd.precmd(self, line)
 
     def postcmd(self, stop, line):
@@ -65,12 +68,14 @@ class prompt(cmd.Cmd):
 
         # newprompt
         print(" "+"-"*linebreak)
-        print("| Health  | "+"> "*int(pc.hp/10))
-        print("| Stamina | "+"< "*int(pc.stamina/10))
+        print("| Health  | "+"> "*int(pc.hp))
+        print("| Stamina | "+"< "*int(pc.stamina))
+        stanceDisplay = "fighting" if pc.stance == False else pc.stance
+        print("| Stance  | "+stanceDisplay.title())
         waiting = "READY" if pc.myTurn() else ((pc.turn - nowTurn+1)*".")
         print("| Waiting | "+waiting)
         print(" "+"-"*linebreak)
-        print("| Enemy   | "+"> "*int(enemy.hp/10))
+        print("| Enemy   | "+"> "*int(enemy.hp))
         print(" "+"-"*linebreak)
         return cmd.Cmd.postcmd(self, stop, line)
 
@@ -154,9 +159,9 @@ def challenge(cstat, tstat):
 class create_attack(object):
     """Creates an attack."""
     def __init__(self, name, level):
-        self.time =  level*3
-        self.energy = level*5
-        self.dmg = level*10
+        self.time =  level
+        self.energy = level
+        self.dmg = level
         self.name = name
 
     def attack(self, char, tchar):
@@ -202,8 +207,8 @@ def damage(tchar, dmg):
 class create_char(object):
     """Creates a character: a player or npc"""
     def __init__(self):
-        self.hp = 100.0
-        self.stamina = 100.0
+        self.hp = 10
+        self.stamina = 10
         self.stance = False
         self.turn = 0
 
@@ -236,12 +241,12 @@ class create_char(object):
         self.stamina = self.stamina - cost
 
     def rest(self):
-        if self.stamina < 100:
+        if self.stamina < 10:
             to_char(self, "You bide your time and regain some energy.")
-        self.stamina = self.stamina+1 if self.stamina < 100 else 100
+        self.stamina = self.stamina+1 if self.stamina < 10 else 10
 
     def block(self, tchar=False):
-        energy = 10
+        energy = 1
         if self.try_act(energy):
             to_char(self, "You get ready to defend yourself.")
             self.stance = "blocking"
