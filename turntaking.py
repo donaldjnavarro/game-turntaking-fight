@@ -27,7 +27,7 @@ class prompt(cmd.Cmd):
     def postcmd(self, stop, line):
         global now, nowTurn
         # print("[debug] nowTurn",nowTurn,", pc.turn",pc.turn,", enemy.turn",enemy.turn)
-        print("pc.stamina",pc.stamina,"enemy.stamina",enemy.stamina)
+        # print("[debug] pc.stamina",pc.stamina,"enemy.stamina",enemy.stamina)
         print()
         
         # Enemy takes their turn and if they aren't ready to act then they refresh
@@ -93,29 +93,86 @@ def to_char(char, msg):
     if char == pc:
         print(msg)
 
+import random
+def dice(number, sides):
+    rolled = 0
+    for x in range(number):
+        rolled += random.randint(1,sides)
+        # print("Rolled: ",rolled)
+    return rolled
+
+def challenge(cstat, tstat):
+    # Handle all conflicts and resolve them with dice rolls
+    # 1. Define how many sides the dice will have
+    # 2. Roll a number of dice for the char and the opponent equal to the value of the stat being challenged
+    # 3. Take the highest roll from the char and the opponent and compare them, the highest wins
+    # 4. return true if the player wins, return false if the player loses, return nothing if it is a tie
+    global char
+    combat_dice = 100
+    highest_roll = 0
+
+    cstat = int(cstat)
+    tstat = int(tstat)
+    for x in range(0, cstat):
+        roll = dice(1,combat_dice)
+        # print("[debug] ATTACKER ROLL",roll)
+        if roll > highest_roll:
+            highest_roll = roll
+    char_roll = highest_roll
+
+    highest_roll = 0
+    for x in range(0, tstat):
+        roll = dice(1,combat_dice)
+        # print("[debug] TARGET ROLL",roll)
+        if roll > highest_roll:
+            highest_roll = roll
+    enemy_roll = highest_roll
+
+    if char_roll > enemy_roll:
+        return True
+    elif enemy_roll > char_roll:
+        return False
+
 class create_attack(object):
     """Creates an attack."""
-    def __init__(self, time, energy, dmg):
+    def __init__(self, name, time, energy, dmg):
         self.time =  time
         self.energy = energy
         self.dmg = dmg
+        self.name = name
 
     def attack(self, char, tchar):
         """Try to attack and if it is not blocked then return True"""
         if char.try_act(self.energy):
-            wait(char, self.time)
-            tire(char, self.energy)
-            if blocked(char, tchar) is not True:
-                damage(tchar, self.dmg)
-                return True
+            char.wait(self.time)
+            char.tire(self.energy)
+
+            to_char(char, "You attempt to "+self.name+"...")
+            to_char(tchar, " <- The enemy attempts to "+self.name+"...")
+            # try to hit
+            cpow = ((char.stamina)/10)+self.energy
+            tpow = (tchar.stamina)/10
+            # print("[debug]",cpow,"vs",tpow)
+            if challenge(cpow, tpow):
+                # if hit succeeded
+                if blocked(char, tchar) is not True:
+                    to_char(char, "...and the "+self.name+" hits!")
+                    to_char(tchar, " <- and the "+self.name+" hits you!")
+                    damage(tchar, self.dmg)
+                    print()
+                    return True
+                else:
+                    return False
             else:
+                to_char(char, "...but the "+self.name+" misses.")
+                to_char(tchar, " <- but the "+self.name+" misses you.")
                 return False
         else:
             return False
 
 def blocked(char, tchar):
     if tchar.stance == "blocking":
-        to_char(tchar, "You block the enemy's attack.")
+        to_char(tchar, " <- You block the enemy's attack.")
         to_char(pc, "The enemy blocks your attack.") if tchar is enemy else False
         return True
     else:
@@ -125,19 +182,11 @@ def damage(tchar, dmg):
     """Deals damage to tchar. It is called within attack() so it shouldn't normally be called on its own"""
     tchar.hp = tchar.hp - dmg
 
-def wait(char, time):
-    """Applies a cooldown until the char's next action"""
-    char.turn = nowTurn + time
-
-def tire(char, cost):
-    """Reduces the char's stamina by the cost"""
-    char.stamina = char.stamina - cost
-
 class create_char(object):
     """Creates a character: a player or npc"""
     def __init__(self):
-        self.hp = 100
-        self.stamina = 100
+        self.hp = 100.0
+        self.stamina = 100.0
         self.stance = False
         self.turn = 0
 
@@ -161,29 +210,31 @@ class create_char(object):
             to_char(self, "You are not ready to act yet...")
             return False
 
+    def wait(self, time):
+        """Applies a cooldown until the char's next action"""
+        self.turn = nowTurn + time
+
+    def tire(self, cost):
+        """Reduces the char's stamina by the cost"""
+        self.stamina = self.stamina - cost
+
     def block(self, tchar=False):
         energy = 10
         if self.try_act(energy):
             to_char(self, "You get ready to defend yourself.")
             self.stance = "blocking"
             print("<- The enemy gets ready to defend themselves.") if self is enemy else False
-            wait(self, 3)
-            tire(self, energy)
+            self.wait(3)
+            self.tire(energy)
 
     def jab(self, tchar):
-        if jab.attack(self, tchar):
-            to_char(self, "You throw a jab!")
-            to_char(tchar, "<- The enemy throws a jab!")
+        jab.attack(self, tchar)
 
     def punch(self, tchar):
-        if punch.attack(self, tchar):
-            to_char(self, "You throw a punch!")
-            to_char(tchar, "<- The enemy throws a punch!")
+        punch.attack(self, tchar)
 
     def uppercut(self, tchar):
-        if uppercut.attack(self, tchar):
-            to_char(self, "You throw a uppercut!")
-            to_char(tchar, "<- The enemy throws a uppercut!")
+        uppercut.attack(self, tchar)
 
     def randomact(self, tchar):
         """Attempt to take a random action"""
@@ -233,9 +284,9 @@ if __name__ == '__main__':
     print("- Type \"help\" to see the available commands.")
     print("- Time passes when any command is entered.")
     play = True
-    jab = create_attack(3,20,10)
-    punch = create_attack(6,30,20)
-    uppercut = create_attack(9,40,30)
+    jab = create_attack("jab", 3,20,10)
+    punch = create_attack("punch", 6,30,20)
+    uppercut = create_attack("uppercut", 9,40,30)
 
     while play == True:
         nowTurn = 1
