@@ -10,8 +10,8 @@ class prompt(cmd.Cmd):
     - If another class inherits this class, then all of these functions will be available in their prompt, in addition to any functions within the child class.
     """
     prompt = ": "
-    global tempPromptLength
-    tempPromptLength = 0
+    global linebreak
+    linebreak = 31
 
     def do_quit(self, arg):
         """Close the program. Nothing is saved."""
@@ -23,8 +23,8 @@ class prompt(cmd.Cmd):
         return False # Do nothing and let time proceed if the user inputs enter without typing
 
     def precmd(self, line):
-        global tempPromptLength
-        print(" "+"-"*tempPromptLength)
+        global linebreak
+        print(" "+"-"*linebreak)
         return cmd.Cmd.precmd(self, line)
 
     def postcmd(self, stop, line):
@@ -54,14 +54,24 @@ class prompt(cmd.Cmd):
             if pc.stance: 
                 status = "and "+pc.stance+" "+status
         
-        global tempPromptLength
-        myTempPrompt = "| You are "+pc.checkhp()+" and "+pc.checkstamina()+" "+status
-        enemyTempPrompt = "| Your opponent is "+enemy.checkhp()+" and "+enemy.checkstamina()
-        tempPromptLength = len(myTempPrompt) if (len(myTempPrompt) > len(enemyTempPrompt)) else len(enemyTempPrompt)
-        print(" "+"-"*tempPromptLength)
-        print(myTempPrompt)
-        print(enemyTempPrompt)
-        print(" "+"-"*tempPromptLength)
+        # global tempPromptLength
+        # myTempPrompt = "| You are "+pc.checkhp()+" and "+pc.checkstamina()+" "+status
+        # enemyTempPrompt = "| Your opponent is "+enemy.checkhp()+" and "+enemy.checkstamina()
+        # tempPromptLength = len(myTempPrompt) if (len(myTempPrompt) > len(enemyTempPrompt)) else len(enemyTempPrompt)
+        # print(" "+"-"*tempPromptLength)
+        # print(myTempPrompt)
+        # print(enemyTempPrompt)
+        # print(" "+"-"*tempPromptLength)
+
+        # newprompt
+        print(" "+"-"*linebreak)
+        print("| Health:  "+">>"*int(pc.hp/10))
+        print("| Stamina: "+"<<"*int(pc.stamina/10))
+        waiting = "Ready to act!" if pc.myTurn() else ((pc.turn - nowTurn+1)*".")
+        print("| Waiting to act: "+waiting)
+        print(" "+"-"*linebreak)
+        print("| Enemy:   "+">>"*int(enemy.hp/10))
+        print(" "+"-"*linebreak)
         return cmd.Cmd.postcmd(self, stop, line)
 
     def do_jab(self, arg):
