@@ -94,7 +94,7 @@ class prompt(cmd.Cmd):
         pc.block()
 
 def check_death():
-    """Check if anyone died"""
+    """Check if anyone died. If this returns true then we need to exit the game loop"""
     # Did everyone die?!
     if pc.hp < 1 and enemy.hp < 1:
         print("\tYou both knock each other out!!!!!!!!!!! IT'S A TIE!")
@@ -118,6 +118,7 @@ def to_char(char, msg):
         print(" "+msg)
 
 def dice(number, sides):
+    """Random number generator for any number of dice of with any number of sides"""
     rolled = 0
     for x in range(number):
         rolled += random.randint(1,sides)
@@ -125,7 +126,7 @@ def dice(number, sides):
     return rolled
 
 def challenge(cstat, tstat):
-    # Handle all conflicts and resolve them with dice rolls
+    """Handle all conflicts and resolve them with dice rolls"""
     # 1. Define how many sides the dice will have
     # 2. Roll a number of dice for the char and the opponent equal to the value of the stat being challenged
     # 3. Take the highest roll from the char and the opponent and compare them, the highest wins
@@ -193,9 +194,11 @@ class create_attack(object):
             return False
 
 def blocked(attack, char, tchar):
+    """Check whether an attack is blocked based on an opposed challenge"""
     if tchar.stance == "blocking":
         power = char.stamina + attack.energy
-        if challenge(tchar.stamina, power):
+        if challenge(tchar.stamina+1, power):
+            # +1 is currently representing the Energy cost of Block
             to_char(tchar, " <--- you block the enemy's attack.")
             to_char(pc, "the enemy blocks your attack.") if tchar is enemy else False
             return True
@@ -219,6 +222,7 @@ class create_char(object):
         self.turn = 0
 
     def myTurn(self):
+        """Check if it is the character's turn now"""
         global nowTurn
         if (self.turn < nowTurn):
             return True
@@ -247,6 +251,7 @@ class create_char(object):
         self.stamina = self.stamina - cost
 
     def rest(self):
+        """Attempt to ignore wounds to recover Stamina"""
         if self.stamina < 10:
             if random.randint(0,self.hp): # recover chance based on lack of wounds
                 to_char(self, "You bide your time and regain some energy.")
@@ -255,6 +260,7 @@ class create_char(object):
                 to_char(self, "You try to focus, but are too disoriented.")
 
     def block(self, tchar=False):
+        """Assume a blocking stance"""
         energy = 1
         if self.try_act(energy):
             to_char(self, "You get ready to defend yourself.")
@@ -273,7 +279,7 @@ class create_char(object):
         uppercut.attack(self, tchar)
 
     def randomact(self, tchar):
-        """Attempt to take a random action"""
+        """Attempt to take a random action. Used to randomize enemy behavior"""
         if (self.turn < nowTurn): 
             self.stance = False
             actions = [self.block, self.jab, self.punch, self.uppercut]
