@@ -288,11 +288,11 @@ class create_char(object):
 
 if __name__ == '__main__':
     print()
-    print(" "+"-"*50)
+    print(" "+"-"*47)
     print("| Tips:")
     print("|   Type \"help\" to see the available commands.")
     print("|   Time passes when any command is entered.")
-    print(" "+"-"*50)
+    print(" "+"-"*47)
     play = True
     jab = create_attack("jab", 1)
     punch = create_attack("punch", 2)
@@ -302,7 +302,7 @@ if __name__ == '__main__':
         nowTurn = 1
         pc = create_char()
         enemy = create_char()
-        enemy.turn = 3 # arbitrary offset so we start by alternating turns
+        enemy.turn = random.randint(1,3) # Enemy's first turn is random
         print()
         print("An enemy approaches. Time to fight!")
         prompt().cmdloop()
