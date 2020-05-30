@@ -10,9 +10,7 @@ class prompt(cmd.Cmd):
     - If another class inherits this class, then all of these functions will be available in their prompt, in addition to any functions within the child class.
     """
     prompt = ": "
-    global linebreak
-    linebreak = 31
-
+    
     def do_quit(self, arg):
         """Close the program. Nothing is saved."""
         quit()
@@ -23,8 +21,6 @@ class prompt(cmd.Cmd):
         return False # Do nothing and let time proceed if the user inputs enter without typing
 
     def precmd(self, line):
-        global linebreak
-        # print(" "+"-"*linebreak)
         print()
         print()
         print()
@@ -36,11 +32,15 @@ class prompt(cmd.Cmd):
         # print("[debug] pc.stamina",pc.stamina,"enemy.stamina",enemy.stamina)
         print()
         
+        # Did user win?
+        if check_death():
+            return True
+
         # Enemy takes their turn and if they aren't ready to act then they refresh
         if not enemy.randomact(pc):
             enemy.rest()
 
-        # Check win and lose conditions
+        # Did user lose?
         if check_death():
             return True
 
@@ -67,6 +67,7 @@ class prompt(cmd.Cmd):
         # print(" "+"-"*tempPromptLength)
 
         # newprompt
+        linebreak = 31
         print(" "+"-"*linebreak)
         print("| Health  | "+"> "*int(pc.hp))
         print("| Stamina | "+"< "*int(pc.stamina))
@@ -170,32 +171,38 @@ class create_attack(object):
             char.tire(self.energy)
 
             to_char(char, "You attempt to "+self.name+"...")
-            to_char(tchar, " <- The enemy attempts to "+self.name+"...")
+            to_char(tchar, " <--- The enemy attempts to "+self.name+"...")
             # try to hit
             cpow = char.stamina+self.energy
             tpow = tchar.stamina
             # print("[debug]",cpow,"vs",tpow)
             if challenge(cpow, tpow):
                 # if hit succeeded
-                if blocked(char, tchar) is not True:
-                    to_char(char, "...and the "+self.name+" hits!")
-                    to_char(tchar, " <- and the "+self.name+" hits you!\n")
+                if blocked(self, char, tchar) is not True:
+                    to_char(char, "...the "+self.name+" hits!")
+                    to_char(tchar, " <--- the "+self.name+" hits you!\n")
                     damage(tchar, self.dmg)
                     return True
                 else:
                     return False
             else:
-                to_char(char, "...but the "+self.name+" misses.")
-                to_char(tchar, " <- but the "+self.name+" misses you.")
+                to_char(char, "...but they avoid the "+self.name+".")
+                to_char(tchar, " <--- but you avoid the "+self.name+".")
                 return False
         else:
             return False
 
-def blocked(char, tchar):
+def blocked(attack, char, tchar):
     if tchar.stance == "blocking":
-        to_char(tchar, " <- You block the enemy's attack.")
-        to_char(pc, "The enemy blocks your attack.") if tchar is enemy else False
-        return True
+        power = char.stamina + attack.energy
+        if challenge(tchar.stamina, power):
+            to_char(tchar, " <--- you block the enemy's attack.")
+            to_char(pc, "the enemy blocks your attack.") if tchar is enemy else False
+            return True
+        else:
+            to_char(tchar, " <--- you try to block but are overwhelmed...")
+            to_char(pc, "the enemy tries to block but you overwhelm their defense...") if tchar is enemy else False
+            return False
     else:
         return False
 
@@ -222,7 +229,7 @@ class create_char(object):
         """Try to take an action and return True if it is your turn"""
         global nowTurn
         if self.myTurn():
-            if self.stamina > cost:
+            if self.stamina >= cost:
                 return True
             else:
                 to_char(self, "You are too tired to do that...")
@@ -273,45 +280,13 @@ class create_char(object):
             random.choice(actions)(tchar)
             return True
 
-    def checkhp(self):
-        if self.hp == 100:
-            return "healthy"
-        if self.hp > 75:
-            return "bruised"
-        if self.hp > 50:
-            return "injured"
-        if self.hp > 25:
-            return "wounded"
-        if self.hp > 10:
-            return "severely wounded"
-        if self.hp > 0:
-            return "on death's door"
-
-    def checkstamina(self):
-        if self.stamina > 90:
-            return "full of energy"
-        if self.stamina > 75:
-            return "energetic"
-        if self.stamina > 66:
-            return "a bit tired"
-        if self.stamina > 50:
-            return "tired"
-        if self.stamina > 33:
-            return "very tired"
-        if self.stamina > 20:
-            return "exhausted"
-        if self.stamina > 10:
-            return "completely exhausted"
-        if self.stamina > 0:
-            return "running on fumes"
-        if self.stamina <= 0:
-            return "spent"
-
 if __name__ == '__main__':
     print()
-    print("Tips:")
-    print("- Type \"help\" to see the available commands.")
-    print("- Time passes when any command is entered.")
+    print(" "+"-"*50)
+    print("| Tips:")
+    print("|   Type \"help\" to see the available commands.")
+    print("|   Time passes when any command is entered.")
+    print(" "+"-"*50)
     play = True
     jab = create_attack("jab", 1)
     punch = create_attack("punch", 2)
