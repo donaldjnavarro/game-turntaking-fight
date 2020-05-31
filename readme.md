@@ -13,9 +13,10 @@
 ## Combat
 
 ### Attacks
-- attack function determines if an attack lands
-- attack success is determined by an opposed challenge between (stamina + attack energy) vs (stamina + block mod)
+- attack() function determines if an attack lands
+- Success is determined by an opposed challenge between (stamina + attack energy) vs (stamina + block mod)
+- tryStun attempts to increase the target's wait timer based on a challenge between the attack power and the target's hp
 
 ## Subjectivity
-- to_char attempts to print messages, but only if the target it is passed is the user
+- to_char attempts to print messages, but only if the arg it is passed is the user
   - This probably needs to be improved to handle a more diverse number of scenarios in a more streamlined way

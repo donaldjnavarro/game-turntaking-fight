@@ -253,7 +253,11 @@ class create_char(object):
 
     def wait(self, time):
         """Applies a cooldown until the char's next action"""
-        self.turn = nowTurn + time
+        # Increase the char's next turn by 1 and then do an hp challenge for each additional point of wait
+        self.turn = nowTurn + 1
+        for x in range(time-1):
+            if challenge(10,self.hp):
+                self.turn = self.turn + 1
 
     def tire(self, cost):
         """Reduces the char's stamina by the cost"""
