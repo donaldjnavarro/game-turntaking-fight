@@ -289,7 +289,7 @@ class create_char(object):
                 self.stamina = self.stamina+1 
             else:
                 to_char(self, "You try to focus, but are too disoriented.")
-                to_char(self, "<--- The enemy blinks and tries to shake off the pain.")
+                to_char(self, "<--- The enemy blinks and tries to shake off the pain.", False)
 
     def block(self, tchar=False):
         """Assume a blocking stance"""
