@@ -37,8 +37,7 @@ class prompt(cmd.Cmd):
             return True
 
         # Enemy takes their turn and if they aren't ready to act then they refresh
-        if not enemy.randomact(pc):
-            enemy.rest()
+        enemy.randomact(pc)
 
         # Did user lose?
         if check_death():
@@ -78,6 +77,9 @@ class prompt(cmd.Cmd):
         print(" "+"-"*linebreak)
         print("| Enemy   | "+"> "*int(enemy.hp))
         print(" "+"-"*linebreak)
+        print("[debug] My Stamina:",pc.stamina,"Turn:",pc.turn)
+        print("[debug] Enemy Stamina:",enemy.stamina,"Turn:",enemy.turn)
+        print("[debug] Current Turn:",nowTurn)
         return cmd.Cmd.postcmd(self, stop, line)
 
     def do_jab(self, arg):
@@ -102,7 +104,7 @@ def check_death():
 
     # Did the enemy kill you?
     if pc.hp < 1:
-        to_char(pc, " <--- You fall to the ground, defeated!!!")
+        to_char(pc, "<--- You fall to the ground, defeated!!!")
         print()
         to_char(pc, "But I guess you get up again? Cuz we just keep fighting 'round here.")
         return True
@@ -112,10 +114,15 @@ def check_death():
         print("\t*** The enemy falls to the ground, defeated!!! ***")
         return True        
 
-def to_char(char, msg):
+def to_char(char, msg, user=True):
     """Displays a message to the char, only if they are the user."""
-    if char == pc:
-        print(" "+msg)
+    # Optional argument user can be turned off to print if the char arg is the enemy instead
+    if not user:
+        if char == enemy:
+            print(" "+msg)
+    else:
+        if char == pc:
+            print(" "+msg)
 
 def dice(number, sides):
     """Random number generator for any number of dice of with any number of sides"""
@@ -163,7 +170,7 @@ def challenge(cstat, tstat):
     # print("[debug] Challenge Success:",success)
     return success
 
-class create_attack(object):
+class create_action(object):
     """Creates an attack."""
     def __init__(self, name, level):
         self.time =  level
@@ -178,7 +185,7 @@ class create_attack(object):
             char.tire(self.energy)
 
             to_char(char, "You attempt to "+self.name+"...")
-            to_char(tchar, " <--- The enemy attempts to "+self.name+"...")
+            to_char(tchar, "<--- The enemy attempts to "+self.name+"...")
             # try to hit: 
             # - attacker uses their stamina plus the power of their attack
             # - defender uses their stamina minus their turn waittime which serves as a reaction penalty
@@ -190,27 +197,27 @@ class create_attack(object):
                 # if hit succeeded
                 if blocked(self, char, tchar) is not True:
                     to_char(char, "...the "+self.name+" hits!")
-                    to_char(tchar, " <--- the "+self.name+" hits you!")
+                    to_char(tchar, "<--- the "+self.name+" hits you!")
                     damage(tchar, self.dmg)
                     
-                    for x in range(attackResult-1):
-                        self.tryStun(char, tchar)
+                    self.tryStun(char, tchar, attackResult-1)
                     return True
                 else:
                     return False
             else:
                 to_char(char, "...but they avoid the "+self.name+".")
-                to_char(tchar, " <--- but you avoid the "+self.name+".")
+                to_char(tchar, "<--- but you avoid the "+self.name+".")
                 return False
         else:
             return False
 
-    def tryStun(self, char, tchar):
-        """Try to add wait time to the target"""
-        if challenge(self.dmg, tchar.hp):
-            tchar.turn = tchar.turn+1
-            to_char(tchar, " <--- You are stunned!")
-            to_char(char, "They are stunned!")
+    def tryStun(self, char, tchar, power):
+        """Try to add wait time to the target relative to power"""
+        stun = challenge(power, tchar.hp)
+        if stun > 0:
+            tchar.turn = tchar.turn + stun
+            to_char(tchar, "<--- You are stunned"+"!"*stun)
+            to_char(char, "They are stunned"+"!"*stun)
 
 def blocked(attack, char, tchar):
     """Check whether an attack is blocked based on an opposed challenge"""
@@ -218,11 +225,11 @@ def blocked(attack, char, tchar):
         power = char.stamina + attack.energy
         if challenge(tchar.stamina+1, power):
             # +1 is currently representing the Energy cost of Block
-            to_char(tchar, " <--- you block the enemy's attack.")
+            to_char(tchar, "<--- you block the enemy's attack.")
             to_char(pc, "the enemy blocks your attack.") if tchar is enemy else False
             return True
         else:
-            to_char(tchar, " <--- you try to block but are overwhelmed...")
+            to_char(tchar, "<--- you try to block but are overwhelmed...")
             to_char(pc, "the enemy tries to block but you overwhelm their defense...") if tchar is enemy else False
             return False
     else:
@@ -273,14 +280,16 @@ class create_char(object):
         """Reduces the char's stamina by the cost"""
         self.stamina = self.stamina - cost
 
-    def rest(self):
+    def rest(self, filler=False):
         """Attempt to ignore wounds to recover Stamina"""
         if self.stamina < 10:
             if challenge(self.hp, 1): # recover chance based on lack of wounds
                 to_char(self, "You bide your time and regain some energy.")
+                to_char(self, "<--- The enemy breathes heavily.", False)
                 self.stamina = self.stamina+1 
             else:
                 to_char(self, "You try to focus, but are too disoriented.")
+                to_char(self, "<--- The enemy blinks and tries to shake off the pain.")
 
     def block(self, tchar=False):
         """Assume a blocking stance"""
@@ -288,26 +297,43 @@ class create_char(object):
         if self.try_act(energy):
             to_char(self, "You get ready to defend yourself.")
             self.stance = "blocking"
-            print("<- The enemy gets ready to defend themselves.") if self is enemy else False
+            to_char(self, "<--- The enemy gets ready to defend themselves.", False)
             self.wait(energy)
             self.tire(energy)
+            return True
+        else:
+            return False
 
     def jab(self, tchar):
-        jab.attack(self, tchar)
+        if jab.attack(self, tchar):
+            return True
+        else:
+            return False
 
     def punch(self, tchar):
-        punch.attack(self, tchar)
+        if punch.attack(self, tchar):
+            return True
+        else:
+            return False
 
     def uppercut(self, tchar):
-        uppercut.attack(self, tchar)
+        if uppercut.attack(self, tchar):
+            return True
+        else:
+            return False
 
     def randomact(self, tchar):
         """Attempt to take a random action. Used to randomize enemy behavior"""
-        if (self.turn < nowTurn): 
+        if (self.turn < nowTurn):
             self.stance = False
-            actions = [self.block, self.jab, self.punch, self.uppercut]
-            random.choice(actions)(tchar)
-            return True
+            actions = [self.block, self.jab, self.punch, self.uppercut, self.rest]
+            # 1. If they are under a certain stamina threshold, then just rest
+            if self.stamina < 5:
+                self.rest()
+            # 2. If not resting, then attack
+            else:
+                random.choice(actions)(tchar)
+
 
 if __name__ == '__main__':
     print()
@@ -317,9 +343,10 @@ if __name__ == '__main__':
     print("|   Time passes when any command is entered.")
     print(" "+"-"*47)
     play = True
-    jab = create_attack("jab", 2)
-    punch = create_attack("punch", 3)
-    uppercut = create_attack("uppercut", 4)
+    jab = create_action("jab", 2)
+    punch = create_action("punch", 3)
+    uppercut = create_action("uppercut", 4)
+    block = create_action("block", 1)
 
     while play == True:
         nowTurn = 1
