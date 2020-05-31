@@ -143,7 +143,7 @@ def challenge(cstat, tstat):
         charRoll.append(dice(1,challenge_dice))
         # print("[debug] CHALLENGER ROLL:",charRoll)
     charRoll.sort()
-    char_highest = charRoll[-1]
+    # char_highest = charRoll[-1] # not needed now that we only measure successes
     # print("[debug] HIGHEST ROLL: ",char_highest)
 
     # Opponent rolls
@@ -159,7 +159,6 @@ def challenge(cstat, tstat):
     for x in charRoll:
         if x > targ_highest:
             success = success+1
-
     return success
 
 class create_attack(object):
@@ -181,14 +180,17 @@ class create_attack(object):
             # try to hit
             cpow = char.stamina+self.energy
             tpow = tchar.stamina
-            print("[debug]",cpow,"vs",tpow)
-            if challenge(cpow, tpow):
+            # print("[debug]",cpow,"vs",tpow)
+            attackResult = challenge(cpow, tpow)
+            if attackResult:
                 # if hit succeeded
                 if blocked(self, char, tchar) is not True:
                     to_char(char, "...the "+self.name+" hits!")
                     to_char(tchar, " <--- the "+self.name+" hits you!")
                     damage(tchar, self.dmg)
-                    self.tryStun(char, tchar)
+                    
+                    for x in range(attackResult-1):
+                        self.tryStun(char, tchar)
                     return True
                 else:
                     return False
@@ -201,11 +203,10 @@ class create_attack(object):
 
     def tryStun(self, char, tchar):
         """Try to add wait time to the target"""
-        for x in range(self.dmg):
-            if challenge(self.dmg, tchar.hp):
-                tchar.turn = tchar.turn+1
-                to_char(tchar, " <--- You are stunned!")
-                to_char(char, "They are stunned!")
+        if challenge(self.dmg, tchar.hp):
+            tchar.turn = tchar.turn+1
+            to_char(tchar, " <--- You are stunned!")
+            to_char(char, "They are stunned!")
 
 def blocked(attack, char, tchar):
     """Check whether an attack is blocked based on an opposed challenge"""
