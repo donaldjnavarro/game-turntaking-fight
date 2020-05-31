@@ -119,10 +119,21 @@ def to_char(char, msg, user=True):
     # Optional argument user can be turned off to print if the char arg is the enemy instead
     if not user:
         if char == enemy:
-            print(" "+msg)
+            if intuition():
+                print(" "+msg)
     else:
         if char == pc:
             print(" "+msg)
+
+def intuition():
+    """Determine whether the user is able to notice something"""
+    # For now we will use opposed hp checks to represent alertness and the ability to conceal yourself as influenced by health/pain
+    # Note: For now we aren't passing chars into this function because the subjectivity is one way. If later we want to develop mechanics around the enemy having intuition too, then we can add char args
+    if challenge(pc.hp, enemy.hp):
+        return True
+    else:
+        print("[debug] User was too oblivious to notice something!")
+        return False
 
 def dice(number, sides):
     """Random number generator for any number of dice of with any number of sides"""
@@ -217,7 +228,7 @@ class create_action(object):
         if stun > 0:
             tchar.turn = tchar.turn + stun
             to_char(tchar, "<--- You are stunned"+"!"*stun)
-            to_char(char, "They are stunned"+"!"*stun)
+            to_char(char, "They are stunned"+"!"*stun, False)
 
 def blocked(attack, char, tchar):
     """Check whether an attack is blocked based on an opposed challenge"""

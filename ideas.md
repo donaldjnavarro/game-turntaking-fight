@@ -27,14 +27,9 @@
 - Should attack avoidance factor in your wait time, as a reflection of "how fast you can react"?
 
 # TODO LIST
-- TODO: Stun chance when hit = challenge(damage taken, hp) to increase victim's turn_wait
-  - What should influence the number of rounds the turn_wait is increased? If damage influences the challenge success then it shouldnt also influence the number of rounds...
-- TODO: Cooldown should have a chance of "taking another turn"
-  - Base this on pain or stamina to reflect reflexes
-  - This is important to create a degree of unpredictability to cooldowns, but only a slight amount of unpredictability. The strength of the attack and the health/energy of the actor should influence the cooldown length much more than RNG
-- TODO: Change block to adding a bonus to the opposed stamina check instead of always blocking. This bonus mirrors the bonus the attacker gets from the cost of the attack
-  - Should block increase the challenge roll or provide an additional challenge roll to resist damage?
-- TODO: Add intuition check that determines whether enemy actions and warnings display 
+- TODO: Add parameter that provides rest() a chance of multiple successes.
+  - Does this require a stat like toughness? How is this distinguished from the opposing wound count?
+- TODO: Blocking should measure block successes and use them to reduce the power of the attack
 - TODO: Change hp to a wound system
   - Each wound causes a pain rank which affects stamina? Reduces stamina cap? Magnifies stamina costs?
 - TODO: Add personality templates for enemies: Different templates have different fighting preferences, and emotes for the user to try to interpret to predict their fighting style
