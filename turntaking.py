@@ -283,7 +283,7 @@ class create_char(object):
     def rest(self, filler=False):
         """Attempt to ignore wounds to recover Stamina"""
         if self.stamina < 10:
-            if challenge(self.hp, 1): # recover chance based on lack of wounds
+            if challenge(1, 10-self.hp): # chance to recover opposed by wounds
                 to_char(self, "You bide your time and regain some energy.")
                 to_char(self, "<--- The enemy breathes heavily.", False)
                 self.stamina = self.stamina+1 
