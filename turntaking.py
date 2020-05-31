@@ -186,8 +186,8 @@ class create_action(object):
             # try to hit: 
             # - attacker uses their stamina plus the power of their attack
             # - defender uses their stamina minus their turn waittime which serves as a reaction penalty
-            cpow = char.stamina+self.level
-            tpow = tchar.stamina-(tchar.turn-nowTurn) if tchar.stamina-(tchar.turn-nowTurn) > 0 else 1
+            cpow = self.level
+            tpow = tchar.turn-nowTurn if tchar.turn-nowTurn > 0 else 1
 
             attackResult = 0
             attackResult = challenge(cpow, tpow)
@@ -310,7 +310,8 @@ class create_char(object):
 
     def tire(self, cost):
         """Reduces the char's stamina by the cost"""
-        self.stamina = self.stamina - cost
+        # Use challenge to randomize the actual stamina spent 
+        self.stamina = self.stamina - challenge(cost, 1)
 
     def rest(self, filler=False):
         """Attempt to ignore wounds to recover Stamina"""
