@@ -92,14 +92,14 @@ def check_death():
 
     # Did the enemy kill you?
     if pc.hp < 1:
-        to_char(pc, "<--- You fall to the ground, defeated!!!")
+        to_char(pc, "<--- ...you fall to the ground, DEAD! YOU LOSE")
         print()
         to_char(pc, "But I guess you get up again? Cuz we just keep fighting 'round here.")
         return True
 
     # Did you kill the enemy?
     if enemy.hp < 1:
-        print("\t*** The enemy falls to the ground, defeated!!! ***")
+        to_char(pc, "...the enemy falls to the ground, DEAD! YOU WIN")
         return True        
 
 def to_char(char, msg, user=True):
@@ -188,68 +188,79 @@ class create_action(object):
             # - defender uses their stamina minus their turn waittime which serves as a reaction penalty
             cpow = char.stamina+self.level
             tpow = tchar.stamina-(tchar.turn-nowTurn) if tchar.stamina-(tchar.turn-nowTurn) > 0 else 1
-            # print("[debug]",cpow,"vs",tpow)
+
+            attackResult = 0
             attackResult = challenge(cpow, tpow)
             if attackResult:
-                # if hit succeeded
-                if tryBlock(self, char, tchar) is not True:
-                    to_char(char, "...the "+self.name+" hits!")
-                    to_char(tchar, "<--- the "+self.name+" hits you!")
-                    if tryDamage(tchar, self.level):
-                        tryStun(tchar, attackResult-1)
-                        return True
-                    else: # hit but didnt do damage
-                        return False 
-                else: # hit but blocked
-                    return False 
+                tryDamage(char, tchar, attackResult)
             else: # didnt hit
-                to_char(char, "...but they avoid the "+self.name+".")
-                to_char(tchar, "<--- but you avoid the "+self.name+".")
+                to_char(char, "...but they avoid the attack.")
+                to_char(tchar, "<--- ...but you avoid the attack!")
                 return False 
         else: # didnt act
             return False
 
-def tryBlock(attack, char, tchar):
-    """Check whether an attack is blocked based on an opposed challenge"""
-    if tchar.stance == "blocking":
-        power = char.stamina + attack.level
-        if challenge(tchar.stamina+1, power):
-            # +1 is currently representing the Energy cost of Block
-            to_char(tchar, "<--- you block the enemy's attack.")
-            to_char(pc, "the enemy blocks your attack.") if tchar is enemy else False
-            return True
-        else:
-            to_char(tchar, "<--- you try to block but are overwhelmed...")
-            to_char(pc, "the enemy tries to block but you overwhelm their defense...") if tchar is enemy else False
-            return False
-    else:
-        return False
+def tryBlock(char, tchar, dmg):
+    """Check if the char is blocking and attempt to reduce the dmg before returning it"""
+    # If they aren't blocking then we're done here
+    if tchar.stance != "blocking":
+        return dmg
 
-def tryDamage(tchar, dmg):
+    block = 0
+    block = challenge(tchar.stamina+1, dmg)
+
+    impact = 0
+    impact = dmg - block
+
+    if block > 0:
+        # Blocked some of the impact
+        if impact > 0:
+            to_char(tchar, "<--- ...you managed to block some of the impact.")
+            to_char(char, "...they managed to block some of the impact.") if tchar is enemy else False
+        # Blocked all of the impact
+        else:
+            to_char(tchar, "<--- ...you managed to block the attack!")
+            to_char(char, "...they managed to block the attack.") if tchar is enemy else False
+    # Failed to block any damage at all
+    else:
+        to_char(tchar, "<--- ...you try to block but are overwhelmed.")
+        to_char(char, "...the enemy tries to block but you overwhelm their defense!") if tchar is enemy else False
+
+    impact = 0 if impact < 0 else impact
+    return impact
+
+def tryDamage(char, tchar, power):
     """Deals damage to tchar. It is called within attack() so it shouldn't normally be called on its own"""
-    impact = challenge(dmg, tchar.stamina)
-    if impact:
-        # Deal damage
+    impact = 0
+    impact = challenge(power, tchar.stamina)
+    impact = tryBlock(char, tchar, impact)
+
+    # Deal damage
+    if impact > 0:
         tchar.hp = tchar.hp - impact
-        to_char(tchar, "<--- Ouch! That really hurt"+"!"*impact)
-        to_char(tchar, "That looked like it hurt"+"!"*impact, False)
+        to_char(tchar, "<--- ...ouch! That hurt"+"!"*impact)
+        to_char(char, "...that looked like it hurt"+"!"*impact) if tchar is enemy else False
 
         # Damaged chars drop any stances
         if tchar.stance:
             tchar.stance = False
-            to_char(tchar, "<--- You are knocked out of your stance!")
-            to_char(tchar, "They are knocked out of their stance!", False)
+            to_char(tchar, "<--- ...you are knocked out of your stance.")
+            to_char(char, "...they are knocked out of their stance!", False)
+
+        tryStun(tchar, impact)
     else:
-        to_char(tchar, "<--- You barely felt that.")
-        to_char(tchar, "They look unphased.", False)
+        to_char(tchar, "<--- ...luckily, you barely felt that!")
+        to_char(char, "...they shrug off the attack.") if tchar is enemy else False
+
+    impact = 0 if impact < 0 else impact
     return impact
 
 def tryStun(tchar, power):
     """Try to add wait time to the tchar, relative to power"""
     stun = tchar.wait(power)
     if stun > 0:
-        to_char(tchar, "<--- You are stunned"+"!"*stun)
-        to_char(tchar, "They are stunned"+"!"*stun, False)
+        to_char(tchar, "<--- ...you are stunned"+"!"*stun)
+        to_char(tchar, "...they are stunned"+"!"*stun, False)
 
 class create_char(object):
     """Creates a character: a player or npc"""
