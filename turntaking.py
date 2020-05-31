@@ -77,9 +77,9 @@ class prompt(cmd.Cmd):
         print(" "+"-"*linebreak)
         print("| Enemy   | "+"> "*int(enemy.hp))
         print(" "+"-"*linebreak)
-        print("[debug] My Stamina:",pc.stamina,"Turn:",pc.turn)
-        print("[debug] Enemy Stamina:",enemy.stamina,"Turn:",enemy.turn)
-        print("[debug] Current Turn:",nowTurn)
+        # print("[debug] My Stamina:",pc.stamina,"Turn:",pc.turn)
+        # print("[debug] Enemy Stamina:",enemy.stamina,"Turn:",enemy.turn)
+        # print("[debug] Current Turn:",nowTurn)
         return cmd.Cmd.postcmd(self, stop, line)
 
     def do_jab(self, arg):
@@ -132,7 +132,7 @@ def intuition():
     if challenge(pc.hp, enemy.hp):
         return True
     else:
-        print("[debug] User was too oblivious to notice something!")
+        # print("[debug] User was too oblivious to notice something!")
         return False
 
 def dice(number, sides):
