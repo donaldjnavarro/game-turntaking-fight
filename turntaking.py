@@ -138,7 +138,7 @@ def challenge(cstat, tstat):
     tstat = int(tstat)
 
     # Challenger rolls
-    charRoll = []
+    charRoll = [0]
     for x in range(0, cstat):
         charRoll.append(dice(1,challenge_dice))
         # print("[debug] CHALLENGER ROLL:",charRoll)
@@ -147,7 +147,7 @@ def challenge(cstat, tstat):
     # print("[debug] HIGHEST ROLL: ",char_highest)
 
     # Opponent rolls
-    targRoll = []
+    targRoll = [0]
     for x in range(0, tstat):
         targRoll.append(dice(1,challenge_dice))
         # print("[debug] TARGET ROLL:",targRoll)
@@ -156,9 +156,11 @@ def challenge(cstat, tstat):
     # print("[debug] HIGHEST ROLL: ",targ_highest)
 
     # Check for bonus successes
+    # print("[debug]",charRoll,"vs",targ_highest)
     for x in charRoll:
         if x > targ_highest:
             success = success+1
+    # print("[debug] Challenge Success:",success)
     return success
 
 class create_attack(object):
@@ -177,9 +179,11 @@ class create_attack(object):
 
             to_char(char, "You attempt to "+self.name+"...")
             to_char(tchar, " <--- The enemy attempts to "+self.name+"...")
-            # try to hit
+            # try to hit: 
+            # - attacker uses their stamina plus the power of their attack
+            # - defender uses their stamina minus their turn waittime which serves as a reaction penalty
             cpow = char.stamina+self.energy
-            tpow = tchar.stamina
+            tpow = tchar.stamina-(tchar.turn-nowTurn) if tchar.stamina-(tchar.turn-nowTurn) > 0 else 1
             # print("[debug]",cpow,"vs",tpow)
             attackResult = challenge(cpow, tpow)
             if attackResult:
