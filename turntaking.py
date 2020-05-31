@@ -97,19 +97,19 @@ def check_death():
     """Check if anyone died. If this returns true then we need to exit the game loop"""
     # Did everyone die?!
     if pc.hp < 1 and enemy.hp < 1:
-        print("\tYou both knock each other out!!!!!!!!!!! IT'S A TIE!")
+        print("\t*** You both knock each other out!!! IT'S A TIE?!! ***")
         return True
 
     # Did the enemy kill you?
     if pc.hp < 1:
-        print("\tYou fall to the ground, defeated!!!!!!!!!!!!!!!")
+        to_char(pc, " <--- You fall to the ground, defeated!!!")
         print()
-        print("But I guess you get up again? Cuz we just keep fighting 'round here.")
+        to_char(pc, "But I guess you get up again? Cuz we just keep fighting 'round here.")
         return True
 
     # Did you kill the enemy?
     if enemy.hp < 1:
-        print("\tThe enemy falls to the ground, defeated!!!!!!!!!!!!!!!")
+        print("\t*** The enemy falls to the ground, defeated!!! ***")
         return True        
 
 def to_char(char, msg):
@@ -181,8 +181,9 @@ class create_attack(object):
                 # if hit succeeded
                 if blocked(self, char, tchar) is not True:
                     to_char(char, "...the "+self.name+" hits!")
-                    to_char(tchar, " <--- the "+self.name+" hits you!\n")
+                    to_char(tchar, " <--- the "+self.name+" hits you!")
                     damage(tchar, self.dmg)
+                    self.tryStun(char, tchar)
                     return True
                 else:
                     return False
@@ -192,6 +193,14 @@ class create_attack(object):
                 return False
         else:
             return False
+
+    def tryStun(self, char, tchar):
+        """Try to add wait time to the target"""
+        for x in range(self.dmg):
+            if challenge(self.dmg, tchar.hp):
+                tchar.turn = tchar.turn+1
+                to_char(tchar, " <--- You are stunned!")
+                to_char(char, "They are stunned!")
 
 def blocked(attack, char, tchar):
     """Check whether an attack is blocked based on an opposed challenge"""
@@ -294,9 +303,9 @@ if __name__ == '__main__':
     print("|   Time passes when any command is entered.")
     print(" "+"-"*47)
     play = True
-    jab = create_attack("jab", 1)
-    punch = create_attack("punch", 2)
-    uppercut = create_attack("uppercut", 3)
+    jab = create_attack("jab", 2)
+    punch = create_attack("punch", 3)
+    uppercut = create_attack("uppercut", 4)
 
     while play == True:
         nowTurn = 1
@@ -304,5 +313,5 @@ if __name__ == '__main__':
         enemy = create_char()
         enemy.turn = random.randint(1,3) # Enemy's first turn is random
         print()
-        print("An enemy approaches. Time to fight!")
+        to_char(pc, "An enemy approaches. Time to fight!")
         prompt().cmdloop()
