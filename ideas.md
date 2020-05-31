@@ -24,7 +24,7 @@
   - Should this be the default way costs of actions are determined? Modular actions? EX: <light> <punch> ? Or should there be preparation actions "prepare strength" that increase the next action's power?
     - Preparation actions could have a "chance to display" that determines whether the opponent gets a message showing that you are using a preparation. This chance to display could introduce a subset of learnable skills for feinting and for avoiding telegraphing
 - What is the difference between taking wounds and taking vigor damage?
-- Should attack avoidance factor in your wait time, as a reflection of "how fast you can react"?
+- Should rest() provide chance for wound healing?
 
 # TODO LIST
 - TODO: Add parameter that provides rest() a chance of multiple successes.

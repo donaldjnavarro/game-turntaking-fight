@@ -21,16 +21,19 @@ class prompt(cmd.Cmd):
         return False # Do nothing and let time proceed if the user inputs enter without typing
 
     def precmd(self, line):
+        # Some gap for now to create a break between input command and any response
         print()
         print()
         print()
         return cmd.Cmd.precmd(self, line)
 
     def postcmd(self, stop, line):
+        """All the handling for each round's resolution"""
         global now, nowTurn
         # print("[debug] nowTurn",nowTurn,", pc.turn",pc.turn,", enemy.turn",enemy.turn)
         # print("[debug] pc.stamina",pc.stamina,"enemy.stamina",enemy.stamina)
-        print()
+        
+        print() # A single gap after the user's command is resolved
         
         # Did user win?
         if check_death():
@@ -43,27 +46,12 @@ class prompt(cmd.Cmd):
         if check_death():
             return True
 
-        #-----------------------
-        # End of Round Routine
+        # Increment the current turn number
         nowTurn = nowTurn+1
-        # 1. Inform the user if they are ready to act
-        # 2. Inform the user how long until they will be ready to act
+
+        # Reset the user stance on their turn
         if (pc.myTurn()):
-            status = "and ready to act!"
             pc.stance = False # Clear the stance when its your turn again. This is shortterm handling until we create a duration for stances 
-        else:
-            status = "and preparing to act."+(pc.turn - nowTurn)*"."
-            if pc.stance: 
-                status = "and "+pc.stance+" "+status
-        
-        # global tempPromptLength
-        # myTempPrompt = "| You are "+pc.checkhp()+" and "+pc.checkstamina()+" "+status
-        # enemyTempPrompt = "| Your opponent is "+enemy.checkhp()+" and "+enemy.checkstamina()
-        # tempPromptLength = len(myTempPrompt) if (len(myTempPrompt) > len(enemyTempPrompt)) else len(enemyTempPrompt)
-        # print(" "+"-"*tempPromptLength)
-        # print(myTempPrompt)
-        # print(enemyTempPrompt)
-        # print(" "+"-"*tempPromptLength)
 
         # newprompt
         linebreak = 31
@@ -184,56 +172,47 @@ def challenge(cstat, tstat):
 class create_action(object):
     """Creates an attack."""
     def __init__(self, name, level):
-        self.time =  level
-        self.energy = level
-        self.dmg = level
+        self.level = level
         self.name = name
 
     def attack(self, char, tchar):
         """Try to attack and if it is not blocked then return True"""
-        if char.try_act(self.energy):
-            char.wait(self.time)
-            char.tire(self.energy)
+        if char.try_act(self.level):
+            char.wait(self.level)
+            char.tire(self.level)
 
             to_char(char, "You attempt to "+self.name+"...")
             to_char(tchar, "<--- The enemy attempts to "+self.name+"...")
             # try to hit: 
             # - attacker uses their stamina plus the power of their attack
             # - defender uses their stamina minus their turn waittime which serves as a reaction penalty
-            cpow = char.stamina+self.energy
+            cpow = char.stamina+self.level
             tpow = tchar.stamina-(tchar.turn-nowTurn) if tchar.stamina-(tchar.turn-nowTurn) > 0 else 1
             # print("[debug]",cpow,"vs",tpow)
             attackResult = challenge(cpow, tpow)
             if attackResult:
                 # if hit succeeded
-                if blocked(self, char, tchar) is not True:
+                if tryBlock(self, char, tchar) is not True:
                     to_char(char, "...the "+self.name+" hits!")
                     to_char(tchar, "<--- the "+self.name+" hits you!")
-                    damage(tchar, self.dmg)
-                    
-                    self.tryStun(char, tchar, attackResult-1)
-                    return True
-                else:
-                    return False
-            else:
+                    if tryDamage(tchar, self.level):
+                        tryStun(char, tchar, attackResult-1)
+                        return True
+                    else: # hit but didnt do damage
+                        return False 
+                else: # hit but blocked
+                    return False 
+            else: # didnt hit
                 to_char(char, "...but they avoid the "+self.name+".")
                 to_char(tchar, "<--- but you avoid the "+self.name+".")
-                return False
-        else:
+                return False 
+        else: # didnt act
             return False
 
-    def tryStun(self, char, tchar, power):
-        """Try to add wait time to the target relative to power"""
-        stun = challenge(power, tchar.hp)
-        if stun > 0:
-            tchar.turn = tchar.turn + stun
-            to_char(tchar, "<--- You are stunned"+"!"*stun)
-            to_char(char, "They are stunned"+"!"*stun, False)
-
-def blocked(attack, char, tchar):
+def tryBlock(attack, char, tchar):
     """Check whether an attack is blocked based on an opposed challenge"""
     if tchar.stance == "blocking":
-        power = char.stamina + attack.energy
+        power = char.stamina + attack.level
         if challenge(tchar.stamina+1, power):
             # +1 is currently representing the Energy cost of Block
             to_char(tchar, "<--- you block the enemy's attack.")
@@ -246,9 +225,25 @@ def blocked(attack, char, tchar):
     else:
         return False
 
-def damage(tchar, dmg):
+def tryDamage(tchar, dmg):
     """Deals damage to tchar. It is called within attack() so it shouldn't normally be called on its own"""
-    tchar.hp = tchar.hp - dmg
+    impact = challenge(dmg, tchar.stamina)
+    if impact:
+        tchar.hp = tchar.hp - impact
+        to_char(tchar, "<--- Ouch! That really hurt"+"!"*impact)
+        to_char(tchar, "That looked like it hurt"+"!"*impact, False)
+    else:
+        to_char(tchar, "<--- You barely felt that.")
+        to_char(tchar, "They look unphased.", False)
+    return impact
+
+def tryStun(char, tchar, power):
+    """Try to add wait time to the tchar, relative to power"""
+    stun = challenge(power, tchar.hp)
+    if stun > 0:
+        tchar.turn = tchar.turn + stun
+        to_char(tchar, "<--- You are stunned"+"!"*stun)
+        to_char(char, "They are stunned"+"!"*stun, False)
 
 class create_char(object):
     """Creates a character: a player or npc"""
@@ -302,15 +297,14 @@ class create_char(object):
                 to_char(self, "You try to focus, but are too disoriented.")
                 to_char(self, "<--- The enemy blinks and tries to shake off the pain.", False)
 
-    def block(self, tchar=False):
+    def block(self, tchar=False, level=1):
         """Assume a blocking stance"""
-        energy = 1
-        if self.try_act(energy):
+        if self.try_act(level):
             to_char(self, "You get ready to defend yourself.")
             self.stance = "blocking"
             to_char(self, "<--- The enemy gets ready to defend themselves.", False)
-            self.wait(energy)
-            self.tire(energy)
+            self.wait(level)
+            self.tire(level)
             return True
         else:
             return False
