@@ -126,36 +126,41 @@ def dice(number, sides):
     return rolled
 
 def challenge(cstat, tstat):
-    """Handle all conflicts and resolve them with dice rolls"""
+    """Oppose a cstat vs tstat with dice rolls, and return a number of successes based on the results"""
     # 1. Define how many sides the dice will have
     # 2. Roll a number of dice for the char and the opponent equal to the value of the stat being challenged
-    # 3. Take the highest roll from the char and the opponent and compare them, the highest wins
-    # 4. return true if the player wins, return false if the player loses, return nothing if it is a tie
+    # 3. For each roll above the opponent's highest, add a success
+    # 5. Return the number of successes, which can be used to influence the potency of a win
     global char
-    combat_dice = 100
-    highest_roll = 0
-
+    challenge_dice = 100 # number of sides for the dice used in contests
+    success = 0
     cstat = int(cstat)
     tstat = int(tstat)
+
+    # Challenger rolls
+    charRoll = []
     for x in range(0, cstat):
-        roll = dice(1,combat_dice)
-        # print("[debug] ATTACKER ROLL",roll)
-        if roll > highest_roll:
-            highest_roll = roll
-    char_roll = highest_roll
+        charRoll.append(dice(1,challenge_dice))
+        # print("[debug] CHALLENGER ROLL:",charRoll)
+    charRoll.sort()
+    char_highest = charRoll[-1]
+    # print("[debug] HIGHEST ROLL: ",char_highest)
 
-    highest_roll = 0
+    # Opponent rolls
+    targRoll = []
     for x in range(0, tstat):
-        roll = dice(1,combat_dice)
-        # print("[debug] TARGET ROLL",roll)
-        if roll > highest_roll:
-            highest_roll = roll
-    enemy_roll = highest_roll
+        targRoll.append(dice(1,challenge_dice))
+        # print("[debug] TARGET ROLL:",targRoll)
+    targRoll.sort()
+    targ_highest = targRoll[-1]
+    # print("[debug] HIGHEST ROLL: ",targ_highest)
 
-    if char_roll > enemy_roll:
-        return True
-    elif enemy_roll > char_roll:
-        return False
+    # Check for bonus successes
+    for x in charRoll:
+        if x > targ_highest:
+            success = success+1
+
+    return success
 
 class create_attack(object):
     """Creates an attack."""
@@ -176,7 +181,7 @@ class create_attack(object):
             # try to hit
             cpow = char.stamina+self.energy
             tpow = tchar.stamina
-            # print("[debug]",cpow,"vs",tpow)
+            print("[debug]",cpow,"vs",tpow)
             if challenge(cpow, tpow):
                 # if hit succeeded
                 if blocked(self, char, tchar) is not True:
