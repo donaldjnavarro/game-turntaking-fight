@@ -177,7 +177,7 @@ class create_action(object):
 
     def attack(self, char, tchar):
         """Try to attack and if it is not blocked then return True"""
-        if char.try_act(self.level):
+        if char.tryAct(self.level):
             char.wait(self.level)
             char.tire(self.level)
 
@@ -196,7 +196,7 @@ class create_action(object):
                     to_char(char, "...the "+self.name+" hits!")
                     to_char(tchar, "<--- the "+self.name+" hits you!")
                     if tryDamage(tchar, self.level):
-                        tryStun(char, tchar, attackResult-1)
+                        tryStun(tchar, attackResult-1)
                         return True
                     else: # hit but didnt do damage
                         return False 
@@ -229,21 +229,27 @@ def tryDamage(tchar, dmg):
     """Deals damage to tchar. It is called within attack() so it shouldn't normally be called on its own"""
     impact = challenge(dmg, tchar.stamina)
     if impact:
+        # Deal damage
         tchar.hp = tchar.hp - impact
         to_char(tchar, "<--- Ouch! That really hurt"+"!"*impact)
         to_char(tchar, "That looked like it hurt"+"!"*impact, False)
+
+        # Damaged chars drop any stances
+        if tchar.stance:
+            tchar.stance = False
+            to_char(tchar, "<--- You are knocked out of your stance!")
+            to_char(tchar, "They are knocked out of their stance!", False)
     else:
         to_char(tchar, "<--- You barely felt that.")
         to_char(tchar, "They look unphased.", False)
     return impact
 
-def tryStun(char, tchar, power):
+def tryStun(tchar, power):
     """Try to add wait time to the tchar, relative to power"""
-    stun = challenge(power, tchar.hp)
+    stun = tchar.wait(power)
     if stun > 0:
-        tchar.turn = tchar.turn + stun
         to_char(tchar, "<--- You are stunned"+"!"*stun)
-        to_char(char, "They are stunned"+"!"*stun, False)
+        to_char(tchar, "They are stunned"+"!"*stun, False)
 
 class create_char(object):
     """Creates a character: a player or npc"""
@@ -261,8 +267,8 @@ class create_char(object):
         else:
             return False
 
-    def try_act(self, cost):
-        """Try to take an action and return True if it is your turn"""
+    def tryAct(self, cost):
+        """Return True if it is self's turn and they can afford the cost"""
         global nowTurn
         if self.myTurn():
             if self.stamina >= cost:
@@ -275,12 +281,21 @@ class create_char(object):
             return False
 
     def wait(self, time):
-        """Applies a cooldown until the char's next action"""
-        # Increase the char's next turn by 1 and then do an hp challenge for each additional point of wait
-        self.turn = nowTurn + 1
-        for x in range(time-1):
+        """Applies a cooldown before the char's next action"""
+        
+        # Don't let them get ahead of the current round through inaction
+        if self.turn < nowTurn:
+            self.turn = nowTurn
+
+        # Roll challenges to see how many additional rounds to add
+        lag = 0
+        for x in range(time):
             if challenge(10,self.hp):
-                self.turn = self.turn + 1
+                lag = lag+1
+
+        self.turn = self.turn + lag
+        return lag
+
 
     def tire(self, cost):
         """Reduces the char's stamina by the cost"""
@@ -299,7 +314,7 @@ class create_char(object):
 
     def block(self, tchar=False, level=1):
         """Assume a blocking stance"""
-        if self.try_act(level):
+        if self.tryAct(level):
             to_char(self, "You get ready to defend yourself.")
             self.stance = "blocking"
             to_char(self, "<--- The enemy gets ready to defend themselves.", False)

@@ -25,6 +25,7 @@
     - Preparation actions could have a "chance to display" that determines whether the opponent gets a message showing that you are using a preparation. This chance to display could introduce a subset of learnable skills for feinting and for avoiding telegraphing
 - What is the difference between taking wounds and taking vigor damage?
 - Should rest() provide chance for wound healing?
+- Should tryStun use the same wait() function to apply lag instead of its own custom approach?
 
 # TODO LIST
 - TODO: Add parameter that provides rest() a chance of multiple successes.
